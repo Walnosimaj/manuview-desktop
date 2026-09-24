@@ -1,4 +1,4 @@
-# ManuView Desktop
+# ManuView Desktop 🔬📄
 
 <p align="center">
   <img src="public/icon.svg" width="96" height="96" alt="ManuView Logo" />
@@ -7,11 +7,19 @@
 <h3 align="center">AI Pre-Submission Peer Review & Manuscript Diagnostic Suite</h3>
 
 <p align="center">
-  A native, privacy-first desktop application designed for researchers, clinicians, and academic authors to audit manuscripts, simulate 5-persona peer reviews, benchmark target journal fit, and verify citation integrity before formal submission.
+  A native, privacy-first desktop application designed for researchers, clinicians, and academic authors to audit manuscripts, simulate 5-persona peer reviews, benchmark target journal fit, detect already published literature, and verify citation integrity before formal submission.
 </p>
 
 <p align="center">
-  <strong>100% Local & Private Processing</strong> &bull; <strong>Zero Unpublished Data Retention</strong> &bull; <strong>Multi-LLM & WebGPU Compatible</strong>
+  <strong>100% Local & Private Processing</strong> &bull; <strong>Zero Unpublished Data Retention</strong> &bull; <strong>Multi-Engine: Laya On-Device, WebGPU SLM & Cloud AI</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Tests-128%20Passing-emerald" alt="128 Passing Tests" />
+  <img src="https://img.shields.io/badge/Architecture-Tauri%20v2%20%2B%20React%2018-blue" alt="Tauri v2 + React 18" />
+  <img src="https://img.shields.io/badge/Decision%20Model-Laya%20ONNX%2FWASM-purple" alt="Laya On-Device" />
+  <img src="https://img.shields.io/badge/Privacy-Zero%20Telemetry-success" alt="Privacy First" />
+  <img src="https://img.shields.io/badge/License-MIT-lightgrey" alt="MIT License" />
 </p>
 
 ---
@@ -25,77 +33,200 @@
 ---
 
 ## Table of Contents
-1. [Core Capabilities & Latest Features](#-core-capabilities--latest-features)
-2. [Diagnostic & Review Architecture](#-diagnostic--review-architecture)
-3. [How to Run Locally (Step-by-Step)](#-how-to-run-locally-step-by-step)
+1. [The 3 Scan Engines](#-the-3-scan-engines)
+2. [Core Capabilities & Latest Features](#-core-capabilities--latest-features)
+   - [Universal Categorization & Eligibility Gate](#1-universal-academic-categorization-gate)
+   - [Scholarly Publication Detection & Routing](#2-scholarly-publication-detection--routing)
+   - [Calibrated Venue Selectivity & Acceptance Forecasting](#3-calibrated-venue-selectivity--acceptance-forecasting)
+   - [5-Persona Simulated Peer Review Panel](#4-5-persona-simulated-peer-review-panel)
+   - [6-Pillar Editorial Triage Matrix](#5-6-pillar-editorial-triage-matrix)
+   - [Statistical Rigor & GRIM Auditor](#6-statistical-rigor--grim-auditor)
+   - [Display Items, Figures & Visual Pre-Flight Auditor](#7-display-items-figures--visual-pre-flight-auditor)
+   - [Grounded Citation & Retraction Verification](#8-grounded-citation--retraction-verification)
+   - [Modular Domain Reporting Guidelines](#9-modular-domain-reporting-guidelines)
+3. [User Interface & Interactive Analytics](#-user-interface--interactive-analytics)
+4. [AI Providers & Model Setup](#-ai-providers--model-setup)
+   - [Local & Offline Models (Laya, WebGPU, Ollama)](#local--offline-providers)
+   - [Cloud AI Models (BYOK: Gemini, Groq, OpenRouter, Mistral, OpenAI, Claude)](#cloud-ai-providers-byok)
+5. [Report Export & Academic Tools](#-report-export--academic-tools)
+6. [System Architecture](#-system-architecture)
+7. [How to Run Locally (Step-by-Step)](#-how-to-run-locally-step-by-step)
    - [Method 1: Web Preview (Fastest — No Rust Needed)](#method-1-web-preview-fastest--no-rust-needed)
    - [Method 2: Full Native Desktop App (macOS & Windows)](#method-2-full-native-desktop-app-macos--windows)
-4. [AI Providers & Key Setup (Free Options Included)](#-ai-providers--key-setup)
-   - [1. Google AI Studio (Gemini) — Recommended Cloud](#1-google-ai-studio-gemini--recommended-cloud)
-   - [2. Local WebGPU / In-Browser SLM (Zero Setup, 100% Private)](#2-local-webgpu--in-browser-slm-zero-setup-100-private)
-   - [3. GroqCloud (Ultra-Fast Llama 3.3)](#3-groqcloud-ultra-fast-llama-33)
-   - [4. OpenRouter (Access to 100+ Free Models)](#4-openrouter-access-to-100-free-models)
-   - [5. Mistral AI & OpenAI / Anthropic](#5-mistral-ai--openai--anthropic)
-   - [6. Ollama (Local Self-Hosted LLMs)](#6-ollama-local-self-hosted-llms)
-5. [Report Export & Academic Tools](#-report-export--academic-tools)
-6. [Testing & Scientific Benchmark Suite](#-testing--scientific-benchmark-suite)
-7. [Scholarly Disclaimer & Responsible Use](#-scholarly-disclaimer--responsible-use)
-8. [Privacy & Security Guarantee](#-privacy--security-guarantee)
-9. [License](#-license)
+8. [Testing & Scientific Benchmark Suite](#-testing--scientific-benchmark-suite)
+9. [Scholarly Disclaimer & Responsible Use](#-scholarly-disclaimer--responsible-use)
+10. [Privacy & Security Guarantee](#-privacy--security-guarantee)
+11. [License](#-license)
+
+---
+
+## ⚡ The 3 Scan Engines
+
+ManuView provides three distinct, parity-calibrated scanning modalities to fit any workflow, privacy requirement, or hardware setup:
+
+| Feature | ⚡ Fast Scan (Laya On-Device) | 💻 Local SLM (WebGPU / Ollama) | ☁️ Cloud AI Diagnostic (BYOK) |
+|---|---|---|---|
+| **Execution** | 100% On-Device (ONNX WebAssembly) | 100% On-Device (WebGPU / Local Server) | Direct HTTPS to Provider API |
+| **API Key / Internet** | **None** (Zero setup, fully offline) | **None** (Offline after model download) | Bring-Your-Own-Key (BYOK) |
+| **Token Cost** | **$0.00** (Zero tokens) | **$0.00** (Zero tokens) | Standard provider rates (Free tiers available) |
+| **Speed** | **Sub-second** (~150ms) | 5–15 seconds (depends on GPU) | 3–8 seconds |
+| **Decision Model** | 27-question atomic diagnostic battery | Small Language Model inference (1B–3B) | Full 5-Persona deep review (Gemini, Claude, GPT-4o) |
+| **Scope & Venue Fit** | Calibrated Venue Selectivity tiering | Target journal scope parsing | Dynamic journal catalog fit + editorial triage |
+| **Best For** | Instant local pre-flight checks, confidential files | Private workstation or lab computers | Thorough pre-submission referee simulation |
 
 ---
 
 ## 🚀 Core Capabilities & Latest Features
 
-ManuView transforms manuscript submission preparation through rigorous, multi-layered diagnostic intelligence:
+### 1. Universal Academic Categorization Gate
+- **Pre-execution Document Classifier**: Evaluates every document before calling any LLM or inference engine using an authoritative dual-metric heuristic (`academicScore >= 5` with strict IMRaD section pair enforcement).
+- **Prevents Misclassification of Random Files**: Non-manuscript files (resumes/CVs, project requirements documents, invoices, shopping lists, source code, and exported diagnostic reports) are immediately flagged with a clean, informative ineligibility banner:
+  > *"Document Ineligible for Peer-Review Evaluation: Classified as [Document Type]"*
+- **Eliminates Token & Quota Waste**: Ineligible documents bypass deep scan pipelines immediately across all three engines, preventing confusing peer reviews of non-academic files.
 
-### 1. 5-Persona Simulated Peer Review
-- Simulates five distinct academic reviewer archetypes:
-  - 🔬 **Methodologist**: Scrutinizes study design, controls, power analysis, and reproducibility.
-  - 📊 **Statistician**: Verifies test selection, degrees of freedom, effect sizes, and p-value consistency via automated GRIM and Statcheck tests.
-  - 🎯 **Domain Specialist**: Evaluates conceptual novelty, grounding in recent literature, and field impact.
-  - 🩺 **Clinical / Applied Reviewer**: Assesses translational feasibility, real-world utility, and ethical rigor.
-  - 🏛️ **Journal Editor**: Reviews overall scope, title/abstract alignment, framing, and desk-rejection hazards.
+### 2. Scholarly Publication Detection & Routing
+- **Extended Header & Footer Analysis**: Scans up to 8,000 characters across title, header, and page 1/2 footer regions for formal digital object identifiers (`doi.org/...`), volume/issue numbers, and major scholarly publishers (ACM, IEEE, Elsevier, Springer, Nature, Wiley, RSC, ACS, etc.).
+- **Live Crossref Resolution**: Verifies whether an identified DOI matches active scholarly literature.
+- **Dedicated Published Article View**: Published papers are automatically routed to a dedicated emerald **"Already Published Article Detected"** view displaying a 4-box publication metadata grid:
+  - **Published Journal**
+  - **Publication Date**
+  - **Publisher**
+  - **Official Article DOI** (with direct external hyperlink)
+- **Suppresses Redundant Peer Reviews**: Unnecessary pre-submission referee personas, readiness scores, and revision punchlists are suppressed for published articles.
+- **Strict Preprint Discrimination**: Papers deposited on preprint servers (arXiv, bioRxiv, medRxiv, ChemRxiv, Research Square, SSRN) and unsubmitted drafts are recognized as pre-submission manuscripts and remain fully eligible for simulated peer review.
 
-### 2. 6-Pillar Editorial Triage Matrix
-- Quantifies editorial risk across the 6 major causes of desk rejection:
-  - **Scope & Venue Fit**
-  - **Methodological Soundness**
-  - **Statistical Rigor & Reproducibility**
-  - **Literature Grounding & Citation Integrity**
-  - **Ethical & Data Reporting Compliance**
-  - **Clarity, Structure & IMRaD Conventions**
+### 3. Calibrated Venue Selectivity & Acceptance Forecasting
+- **Empirical Venue Selectivity Calibration**: Benchmarks manuscripts against genuine rejection and acceptance profiles for target journals (e.g., *The Lancet*, *Nature*, *IEEE Transactions*, *PNAS*).
+- **Eliminates Ungrounded 100/100 Scores**: Applies strict deterministic ceiling caps so high scores require verifiable empirical grounding, preventing misleadingly optimistic feedback.
+- **Calibrated Qualitative Readiness Bands**: Categorizes papers into honest, actionable bands:
+  - 🟢 **High Acceptance Probability** (Ready for submission / minor polish)
+  - 🟠 **Revision Prioritized** (Sound baseline, critical revisions required)
+  - 🔴 **Editorial Desk Reject Hazard** (Major scope mismatch or structural deficiencies)
 
-### 3. Interactive Infographics & Visual Analytics
-- **Dynamic Radar Chart**: Multi-axis visualization of readiness across all evaluation dimensions with SVG export.
-- **Segmented Readiness Gauge**: Calibrated qualitative readiness band (High / Moderate / Low) without artificial percentage false precision.
+### 4. 5-Persona Simulated Peer Review Panel
+- Simulates five distinct, adversarial referee archetypes:
+  - 🔬 **Methodologist**: Scrutinizes experimental design, controls, power analysis, confounding variables, and protocol reproducibility.
+  - 📊 **Statistician**: Verifies degrees of freedom, effect sizes, statistical test selection, and p-value consistency.
+  - 🎯 **Domain Specialist**: Evaluates conceptual novelty, grounding in recent state-of-the-art literature, and overall disciplinary impact.
+  - 🩺 **Clinical / Applied Reviewer**: Assesses translational feasibility, clinical relevance, sample representativeness, and ethical rigor.
+  - 🏛️ **Journal Handling Editor**: Evaluates journal scope fit, title/abstract alignment, framing, and desk-rejection hazards.
+- **Copyable Author Rebuttals**: Every reviewer critique includes pre-formatted rebuttal guidance with one-click clipboard copying.
+
+### 5. 6-Pillar Editorial Triage Matrix
+- Quantifies editorial hazard across the 6 primary causes of journal desk rejection:
+  1. **Scope & Disciplinary Alignment**: Flags cross-field mismatches with clear visual indicators (Red for Out-of-Scope, Orange for Review-Needed).
+  2. **Methodological Rigor & Internal Validity**
+  3. **Statistical Integrity & Analytical Reproducibility**
+  4. **Literature Grounding & Citation Hygiene**
+  5. **Ethical Compliance & Data Availability**
+  6. **Structural Clarity & IMRaD Conventions**
+
+### 6. Statistical Rigor & GRIM Auditor
+- **GRIM (Granularity-Related Inconsistency of Means) Test**: Mathematically audits reported means and sample sizes to detect impossible values in integer-based survey and experimental data.
+- **Statcheck Integration**: Extracts test statistics ($t$, $F$, $\chi^2$, $Z$, $r$) alongside degrees of freedom and recalculated $p$-values to detect gross reporting errors.
+
+### 7. Display Items, Figures & Visual Pre-Flight Auditor
+- **Caption & Callout Auditing**: Detects figure and table captions across major academic formats and verifies narrative callouts within text.
+- **Orphan & Phantom Item Detection**: Automatically flags display items referenced in text but missing captions, and captions never cited in the manuscript body.
+- **Error Bar & Statistical Legend Check**: Verifies that figures featuring error bars explicitly define their statistical meaning (SD, SEM, 95% CI).
+
+### 8. Grounded Citation & Retraction Verification
+- **Built-in Retraction Watch Database**: Offline embedded dataset detects retracted papers instantly without external internet calls.
+- **Live Crossref Open API Verification**: Resolves reference DOIs, author lists, and publication years in real-time.
+- **Smart DOI De-Wrapping**: Reassembles split DOIs across line breaks and hyphens without corrupting adjacent citation entries.
+- **Recency & Self-Citation Density**: Computes the proportion of references older than 10 years and quantifies author self-citation skew.
+
+### 9. Modular Domain Reporting Guidelines
+- Audits manuscripts against canonical clinical and scientific reporting frameworks:
+  - 🏥 **CONSORT 2010**: Randomized Controlled Trials
+  - 📑 **PRISMA 2020**: Systematic Reviews and Meta-Analyses
+  - 🐁 **ARRIVE 2.0**: In vivo preclinical animal research
+  - 🤖 **ML Reproducibility Checklist**: Machine learning and algorithmic research
+
+---
+
+## 📊 User Interface & Interactive Analytics
+
+ManuView features a modern macOS-inspired interface built for focused academic writing:
+
+- **Dynamic Radar Chart**: Multi-axis visualization of readiness scores across all evaluation dimensions with direct SVG export.
+- **Segmented Readiness Gauge**: Qualitative readiness gauge providing clear visual feedback without artificial percentage noise.
 - **Decision Distribution Bar**: Anticipated editorial outcomes (Accept / Minor Revision / Major Revision / Reject) summing strictly to 100%.
-- **Citation Status Donut**: Visual breakdown of verified, unverified, retracted, and self-citations.
-- **Scan Pipeline Stepper**: Real-time visual progress through text extraction, DOI checking, compliance parsing, and LLM inference.
+- **Journal Fit Recommendation Cards**: Tiered recommendations (Reach, Realistic, Fallback) matched against an embedded 48,000+ scholarly journal catalog.
+- **Collapsible Article Navigation Sidebar**: Grouped into human-friendly time buckets (*Today*, *Yesterday*, *Previous 7 Days*, *Previous 30 Days*, *Older*) with hover-revealed sub-navigation, provider badges, and status pills.
+- **Self-Healing Notification Toasts**: Real-time export progress, copy alerts, and auto-dismissing connection status bars.
 
-### 4. Grounded Citation & Retraction Verification
-- **Landmark Retraction Watch Database**: Built-in offline database detects retracted papers instantly without external dependencies.
-- **Crossref DOI Verification**: Real-time live validation of references, authors, publication years, and DOI resolution.
-- **Smart DOI De-Wrapping**: Robust parser that joins split DOIs across line breaks and hyphens without corrupting adjacent entries.
-- **Recency & Self-Citation Indexing**: Flags reference obsolescence (>10-year skew) and computes self-citation concentration.
+---
 
-### 5. Multi-Format Academic Report Export
-- **Print-Optimized PDF**: Browser-native print styles with clean page breaks, styled callouts, and SVG graphics.
-- **Microsoft Word (`.doc` / `.docx`)**: Styled HTML formatted for flawless Word document import.
-- **Point-by-Point LaTeX Rebuttal Template**: Pre-populated LaTeX rebuttal matrix for journal resubmissions.
-- **BibTeX Library Export**: Structured BibTeX collection for all verified references.
+## 🔑 AI Providers & Model Setup
 
-### 6. Built-in Academic Utility Suite
-- **PRISMA 2020 Flow Diagram Generator**: Interactive flow-diagram tool for systematic reviews with SVG/PDF export.
+ManuView organizes providers into two clear, intuitive categories:
+
+```
+┌────────────────────────────────────────────────────────┐
+│                   PROVIDER SETTINGS                    │
+├────────────────────────────┬───────────────────────────┤
+│   LOCAL & OFFLINE          │   CLOUD AI (BYOK)         │
+│   • Laya (Fast Scan)       │   • Google Gemini         │
+│   • Local SLM (WebGPU)     │   • GroqCloud             │
+│   • Ollama (Local Server)  │   • OpenRouter            │
+│                            │   • Mistral AI            │
+│                            │   • OpenAI / Anthropic    │
+└────────────────────────────┴───────────────────────────┘
+```
+
+### Local & Offline Providers
+
+1. **Laya On-Device Fast Scan** *(Built-in, Zero Setup)*:
+   - Uses on-device ONNX WebAssembly decision models.
+   - Requires no API keys, no internet connection, and zero download steps.
+   - Selected by default on fresh installations.
+2. **Local SLM via WebGPU** *(100% In-Browser/Desktop GPU)*:
+   - Powered by WebLLM running directly on your computer's GPU.
+   - Gated selection: only models that have been downloaded and cached locally (e.g., `Qwen2.5-0.5B-Instruct`, `Llama-3.2-1B`) can be activated.
+   - Weight downloads include interactive progress bars and cache purge controls.
+3. **Ollama (Local Self-Hosted Server)**:
+   - For clinical labs and high-security institutions running their own inference server.
+   - Connects to `http://localhost:11434` with auto-detected local models (`llama3.3`, `mistral`, `deepseek-r1`, etc.).
+
+### Cloud AI Providers (BYOK)
+
+ManuView operates on a strict **Bring-Your-Own-Key** model. Keys are stored locally on your device using OS-native secure storage:
+
+- **Google Gemini** *(Recommended Cloud)*: Free tier available at [Google AI Studio](https://aistudio.google.com/). Supports `gemini-2.5-flash` and `gemini-1.5-pro` with automatic model healing.
+- **GroqCloud**: Ultra-high-speed inference via [console.groq.com](https://console.groq.com/) using `llama-3.3-70b-versatile`.
+- **OpenRouter**: Unified access to 100+ models via [openrouter.ai](https://openrouter.ai/) with curated free-tier model suggestions.
+- **Mistral AI**: European privacy-focused models via [console.mistral.ai](https://console.mistral.ai/) (`mistral-small-latest`, `codestral-latest`).
+- **OpenAI & Anthropic**: Support for `gpt-4o`, `gpt-4o-mini`, `claude-3-5-sonnet`, and `claude-3-5-haiku`.
+
+> [!TIP]
+> **Auto-Dismissing Warnings**: If a connection warning appears for an unconfigured provider, selecting a working model or entering valid credentials automatically clears the warning banner instantly.
+
+---
+
+## 📑 Report Export & Academic Tools
+
+Export comprehensive diagnostic reports in multiple publication-ready formats:
+
+| Format | Output | Best Used For |
+|---|---|---|
+| **Interactive HTML** | Standalone `.html` report with embedded charts & styling | Offline viewing, departmental sharing, browser presentation |
+| **Microsoft Word** | Clean `.doc` / `.docx` with styled callouts & tables | Collaborative revision and track-changes with co-authors |
+| **Print / PDF** | Formatted PDF with custom page-breaks & print CSS | Formal archival, grant progress reports, co-author distribution |
+| **LaTeX Rebuttal** | Pre-populated point-by-point `.tex` rebuttal matrix | Formal journal resubmissions and editorial response letters |
+| **BibTeX Library** | Valid `.bib` file containing all verified reference DOIs | Direct import into Overleaf, Zotero, Mendeley, or Paperpile |
+
+### Built-in Academic Utility Suite
+- **PRISMA 2020 Flow Diagram Generator**: Interactive interactive flowchart generator for systematic reviews with SVG and PDF download.
 - **Cover Letter Drafter**: Formats professional submission letters highlighting novelty, ethical clearances, and editorial fit.
-- **Review Response Rebuttal Builder**: Generates point-by-point author rebuttal matrices to respond constructively to peer reviewer critiques.
+- **Review Response Rebuttal Builder**: Generates structured author responses to peer reviewer critiques.
 - **Batch Manuscript Management**: Multi-select, batch deletion, and local computer project persistence.
 
 ---
 
-## 🔬 Diagnostic & Review Architecture
+## 🔬 System Architecture
 
-ManuView is engineered as a modular, lightweight desktop client powered by Tauri v2, React 18, and Vite:
+ManuView is engineered as a lightweight, privacy-first desktop client powered by **Tauri v2**, **React 18**, and **Vite**:
 
 ```
 src/
@@ -104,22 +235,23 @@ src/
 │   ├── scan/               # Input dropzone, model picker, and full report viewers
 │   ├── sidebar/            # Collapsible macOS-style sidebar, paper lists, time buckets
 │   ├── charts/             # Radar charts, gauges, donuts, pipeline steppers
-│   └── services/           # PRISMA flowcharts, Cover Letters, Rebuttal builders
+│   └── services/           # Laya Scan, PRISMA flowcharts, Cover Letters, Rebuttal builders
 ├── lib/
-│   ├── engine/             # Diagnostic orchestrator, prompt builders, compliance audits
+│   ├── engine/             # Diagnostic orchestrator, Stage 0 integrity, scoring dimensions
+│   ├── laya/               # Laya on-device ONNX/WASM decision model battery & service
 │   ├── webllm/             # WebGPU on-device SLM execution engine (Qwen2.5-0.5B, etc.)
+│   ├── publication-detector.ts # Extended DOI, publisher metadata, and preprint classifier
+│   ├── parser.ts           # Dual-metric academic manuscript vs. non-academic classifier
 │   ├── data/               # Retraction Watch compact DB, 48,000+ journal catalog
 │   ├── statcheck.ts        # Automated statistical consistency and GRIM test checks
 │   ├── citation-recency.ts # Reference recency and self-citation density metrics
 │   └── export-generator.ts # PDF, Word, LaTeX rebuttal, and BibTeX generators
-└── src-tauri/              # Rust native application shell and OS dialog/file integration
+└── src-tauri/              # Rust native application shell, OS dialogs, and window management
 ```
 
 ---
 
 ## 💻 How to Run Locally (Step-by-Step)
-
-You do not need deep programming experience to run ManuView. Choose either of the two methods below:
 
 ### Prerequisites
 
@@ -135,7 +267,7 @@ You do not need deep programming experience to run ManuView. Choose either of th
 
 ### Method 1: Web Preview (Fastest — No Rust Needed)
 
-If you only have Node.js installed and want to run ManuView immediately:
+If you only have Node.js installed and want to run ManuView immediately in your web browser:
 
 1. **Clone the Repository**:
    ```bash
@@ -154,7 +286,7 @@ If you only have Node.js installed and want to run ManuView immediately:
    ```
 
 4. **Open in Browser**:
-   Navigate to [http://localhost:1420](http://localhost:1420). All features—including file upload, citation verification, AI reviews, and export tools—will run in your browser.
+   Navigate to [http://localhost:1420](http://localhost:1420). All features—including file upload, citation verification, Laya fast scans, AI reviews, and export tools—will run directly in your browser.
 
 ---
 
@@ -170,11 +302,11 @@ To run ManuView inside a native operating system window with OS file dialogs and
      Restart your terminal after installation.
    - **Windows**: Download and run `rustup-init.exe` from [rustup.rs](https://rustup.rs/).
 
-2. **Launch the Native Desktop App**:
+2. **Launch the Standalone Desktop App**:
    ```bash
    npm run desktop:dev
    ```
-   Tauri will compile the native backend and launch the standalone desktop app.
+   Tauri will compile the native Rust backend and launch the standalone desktop app.
 
 3. **Build an Executable / Installer**:
    ```bash
@@ -184,105 +316,37 @@ To run ManuView inside a native operating system window with OS file dialogs and
 
 ---
 
-## 🔑 AI Providers & Key Setup
-
-ManuView operates on a **Bring-Your-Own-Key (BYOK)** model. You have complete control over where your manuscript data travels:
-
-### 1. Google AI Studio (Gemini) — *Recommended Cloud*
-> **Generous free tier (up to 15 RPM), fast inference, and large context windows for full manuscripts.**
-
-1. Visit [Google AI Studio](https://aistudio.google.com/).
-2. Sign in with your Google account.
-3. Click **"Get API key"** &rarr; **"Create API key"**.
-4. In ManuView, open **Settings** (gear icon in the bottom-left sidebar).
-5. Select **Google Gemini**, pick `gemini-2.5-flash` or `gemini-1.5-flash`, and paste your key.
-
----
-
-### 2. Local WebGPU / In-Browser SLM (Zero Setup, 100% Private)
-> **Runs directly inside your browser or desktop window using your GPU. No API keys, no accounts, zero data transmission.**
-
-1. Open **Settings** &rarr; switch to the **Local Models (WebLLM)** tab.
-2. Select an optimized local Small Language Model (e.g., `Qwen2.5-0.5B-Instruct` or `Llama-3.2-1B`).
-3. Click **Download / Cache Model** (weights are cached locally on your device).
-4. Run live reviews completely offline with full privacy.
-
----
-
-### 3. GroqCloud (Ultra-Fast Llama 3.3)
-> **High-speed inference for open models like Meta Llama 3.3 70B.**
-
-1. Visit [console.groq.com](https://console.groq.com/) and create a free account.
-2. Navigate to **API Keys** &rarr; **Create API Key**.
-3. In ManuView, select **Groq** and choose `llama-3.3-70b-versatile`.
-
----
-
-### 4. OpenRouter (Access to 100+ Free Models)
-> **Single unified key for Meta, Mistral, Google, Qwen, and DeepSeek.**
-
-1. Visit [openrouter.ai](https://openrouter.ai/) and register.
-2. Go to **Keys** &rarr; **Create Key** (starts with `sk-or-v1-...`).
-3. In ManuView, select **OpenRouter**. ManuView automatically suggests available free-tier models (tagged `:free`).
-
----
-
-### 5. Mistral AI & OpenAI / Anthropic
-- **Mistral AI**: Create a key at [console.mistral.ai](https://console.mistral.ai/) and choose `mistral-small-latest` or `codestral-latest`.
-- **OpenAI**: Supply your key from [platform.openai.com](https://platform.openai.com/) to use `gpt-4o` or `gpt-4o-mini`.
-- **Anthropic**: Use Claude 3.5 Sonnet or Haiku directly with your Anthropic key.
-
----
-
-### 6. Ollama (Local Self-Hosted LLMs)
-> **For high-security clinical or confidential labs running their own local model server.**
-
-1. Install [Ollama](https://ollama.com/) on your workstation.
-2. Pull your preferred model:
-   ```bash
-   ollama run llama3.3
-   ```
-3. In ManuView Settings, select **Ollama (Local)**. ManuView connects directly to `http://localhost:11434` without needing an API key.
-
----
-
-## 📑 Report Export & Academic Tools
-
-Once a review is complete, click **Export Report** in the top-right toolbar to choose your format:
-
-| Format | Output | Best Used For |
-|---|---|---|
-| **Print / PDF** | Formatted PDF with custom page-breaks and charts | Archival, departmental review, co-author distribution |
-| **Microsoft Word** | Clean `.doc` / `.docx` with callout blocks | Collaborative editing and track changes with co-authors |
-| **LaTeX Rebuttal** | Point-by-point `.tex` table matrix | Resubmissions to journal editorial boards |
-| **BibTeX** | `.bib` file with deduplicated references | Direct import into Overleaf, LaTeX, or Zotero |
-
----
-
 ## 🧪 Testing & Scientific Benchmark Suite
 
-ManuView includes an end-to-end automated test and scientific benchmarking suite:
+ManuView includes an end-to-end automated test and scientific benchmarking suite with **128 passing tests** across 9 specialized suites:
 
 ```bash
-# Run all 56 unit and integration tests
+# Run all 128 automated unit and integration tests
 npm test
 
-# Run synthetic scientific validation benchmarks (17 detectors)
-npm run benchmark
-
-# Run golden layer benchmarks
-npm run benchmark:gold
+# Run tests in continuous watch mode
+npm run test:watch
 
 # Verify TypeScript build and production bundle
 npm run build
 ```
+
+### Test Suite Coverage:
+- **`laya-decision-model.test.ts`**: Verifies 27-question evaluation battery, deterministic repeatability, non-academic document discrimination, and signal detail formatting.
+- **`publication-detection.test.ts`**: Validates DOI extraction up to 8,000 characters, publisher identification, Crossref resolution, preprint discrimination, and Stage 0 bypass.
+- **`algorithm-parity-scoring.test.ts`**: Verifies venue selectivity calibration, score caps, and parity across scan engines.
+- **`display-item-auditor.test.ts`**: Checks figure/table caption matching, callout detection, orphan item alerts, and error bar definitions.
+- **`reporting-guidelines.test.ts`**: Validates compliance engines for CONSORT 2010, PRISMA 2020, ARRIVE 2.0, and ML Reproducibility Checklists.
+- **`citation-audit.test.ts`**: Tests Retraction Watch matching, DOI de-wrapping, deduplication, and Crossref caching.
+- **`export-generator.test.ts`**: Tests generation of valid HTML, Word documents, PDFs, LaTeX rebuttal tables, and BibTeX libraries.
+- **`journal-matching.test.ts`**: Verifies catalog lookups, discipline matching, and recommendation consistency across 48,000+ journals.
+- **`parser-integrity.test.ts`**: Tests IMRaD section extraction, language detection, PDF extraction quality, and non-English rejection.
 
 ---
 
 ## ⚠️ Scholarly Disclaimer & Responsible Use
 
 - **Simulated Synthetic Personas**: All reviewer personas, editorial office notes, and adversarial critiques displayed in ManuView are synthetic, AI-simulated role models designed exclusively for pre-submission stress-testing and manuscript triage. They do **not** represent real living individuals, actual journal editorial boards, or binding peer-review decisions.
-- **Offline Deterministic Audits vs. Synthetic Scoring**: When operated without an active LLM connection, ManuView strictly suppresses overall acceptance scores and simulated personas to safeguard scholarly integrity. Instead, it provides a transparent, deterministic compliance audit covering IMRaD section structure, statistical and protocol cues, reporting guideline adherence, DOI validity, and author self-citation density.
 - **Decision-Support Only**: ManuView is designed solely to assist authors in pre-submission preparation and diagnostic triage. It does not replace domain expertise, formal peer review, institutional ethics boards, or editorial oversight.
 - **Ethics Alignment**: Designed to assist compliance with international guidelines from the **Committee on Publication Ethics (COPE)** and the **International Committee of Medical Journal Editors (ICMJE)**.
 
@@ -290,9 +354,10 @@ npm run build
 
 ## 🛡️ Privacy & Security Guarantee
 
-1. **Zero Cloud Telemetry**: ManuView does not operate a central server that ingests or logs manuscript text.
-2. **Local Storage**: All project cards, generated reviewer reports, cover letters, and diagnostic scores are saved strictly inside your local storage.
+1. **Zero Cloud Telemetry**: ManuView does not operate a central server that ingests, logs, or trains on manuscript text.
+2. **Local Storage**: All project cards, generated reviewer reports, cover letters, and diagnostic scores are saved strictly inside your computer's local application storage.
 3. **Encrypted Direct Communication**: When calling cloud AI providers, communication is transmitted over HTTPS directly between your computer and the AI provider's official endpoint using your private key.
+4. **Air-Gapped Operation**: With the **Laya On-Device Fast Scan** or local **WebGPU / Ollama** models selected, ManuView operates completely offline with zero external network traffic.
 
 ---
 
