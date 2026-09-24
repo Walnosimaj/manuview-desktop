@@ -34,7 +34,9 @@ import { HumanReadableScanError } from "@/lib/scanErrorTranslator";
 import { useApiConnection } from "@/lib/useApiConnection";
 import { FullReviewReport } from "@/lib/types";
 import { isDesktopApp } from "@/lib/desktop";
+import { useIsMobile } from "@/lib/useIsMobile";
 import { DesktopWebLandingPage } from "@/components/landing/DesktopWebLandingPage";
+import { MobileAppWorkspace } from "@/components/mobile/MobileAppWorkspace";
 import {
   loadSavedProjects,
   saveProject,
@@ -48,13 +50,19 @@ import {
 import { migrateLegacyLocalStorageKeys } from "@/lib/secureStorage";
 
 export default function App() {
-  // Web vs Desktop workspace view state
+  const isMobile = useIsMobile();
+
+  // Web vs Desktop workspace view state (Mobile screens default directly to app mode)
   const [viewMode, setViewMode] = useState<"landing" | "app">(() => {
     if (isDesktopApp()) return "app";
     try {
       const saved = sessionStorage.getItem("manuview_web_view_mode");
       if (saved === "app") return "app";
+      if (saved === "landing") return "landing";
     } catch {}
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      return "app";
+    }
     return "landing";
   });
 
@@ -508,39 +516,57 @@ export default function App() {
         onScanCompleted={handleScanCompleted}
         onScanFailed={handleScanFailed}
       >
-        <AppWorkspace
-          papers={papers}
-          setPapers={setPapers}
-          dashboardStore={dashboardStore}
-          setDashboardStore={setDashboardStore}
-          fullReportsStore={fullReportsStore}
-          setFullReportsStore={setFullReportsStore}
-          openTabs={openTabs}
-          setOpenTabs={setOpenTabs}
-          activeTabId={activeTabId}
-          setActiveTabId={setActiveTabId}
-          activeView={activeView}
-          setActiveView={setActiveView}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          isConnected={isConnected}
-          isApiLoading={isApiLoading}
-          modelName={modelName}
-          latencyMs={latencyMs}
-          provider={provider}
-          selectedPaperIds={selectedPaperIds}
-          onToggleSelectPaper={handleToggleSelectPaper}
-          onClearSelectedPapers={handleClearSelectedPapers}
-          onSelectAllPapers={handleSelectAllPapers}
-          papersToDelete={papersToDelete}
-          setPapersToDelete={setPapersToDelete}
-          handleDeleteProjectConfirm={handleDeleteProjectConfirm}
-          handleScanComplete={handleScanComplete}
-          handleOpenArticle={handleOpenArticle}
-          handleOpenService={handleOpenService}
-          handleCloseTab={handleCloseTab}
-          setViewMode={setViewMode}
-        />
+        {isMobile ? (
+          <MobileAppWorkspace
+            papers={papers}
+            dashboardStore={dashboardStore}
+            fullReportsStore={fullReportsStore}
+            activeTabId={activeTabId}
+            setActiveTabId={setActiveTabId}
+            isConnected={isConnected}
+            isApiLoading={isApiLoading}
+            modelName={modelName}
+            latencyMs={latencyMs}
+            onScanComplete={handleScanComplete}
+            onOpenArticle={handleOpenArticle}
+            onOpenService={handleOpenService}
+            onDeletePaper={(paper) => setPapersToDelete([paper])}
+          />
+        ) : (
+          <AppWorkspace
+            papers={papers}
+            setPapers={setPapers}
+            dashboardStore={dashboardStore}
+            setDashboardStore={setDashboardStore}
+            fullReportsStore={fullReportsStore}
+            setFullReportsStore={setFullReportsStore}
+            openTabs={openTabs}
+            setOpenTabs={setOpenTabs}
+            activeTabId={activeTabId}
+            setActiveTabId={setActiveTabId}
+            activeView={activeView}
+            setActiveView={setActiveView}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            isConnected={isConnected}
+            isApiLoading={isApiLoading}
+            modelName={modelName}
+            latencyMs={latencyMs}
+            provider={provider}
+            selectedPaperIds={selectedPaperIds}
+            onToggleSelectPaper={handleToggleSelectPaper}
+            onClearSelectedPapers={handleClearSelectedPapers}
+            onSelectAllPapers={handleSelectAllPapers}
+            papersToDelete={papersToDelete}
+            setPapersToDelete={setPapersToDelete}
+            handleDeleteProjectConfirm={handleDeleteProjectConfirm}
+            handleScanComplete={handleScanComplete}
+            handleOpenArticle={handleOpenArticle}
+            handleOpenService={handleOpenService}
+            handleCloseTab={handleCloseTab}
+            setViewMode={setViewMode}
+          />
+        )}
       </ScanProvider>
     </ThemeProvider>
   );
