@@ -15,9 +15,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Tests-128%20Passing-emerald" alt="128 Passing Tests" />
+  <img src="https://img.shields.io/badge/Tests-135%20Passing-emerald" alt="135 Passing Tests" />
   <img src="https://img.shields.io/badge/Architecture-Tauri%20v2%20%2B%20React%2018-blue" alt="Tauri v2 + React 18" />
-  <img src="https://img.shields.io/badge/Decision%20Model-Laya%20ONNX%2FWASM-purple" alt="Laya On-Device" />
+  <img src="https://img.shields.io/badge/Decision%20Models-Laya%20v3%20ONNX%20(INT8%20%26%20FP32)-purple" alt="Laya On-Device" />
   <img src="https://img.shields.io/badge/Privacy-Zero%20Telemetry-success" alt="Privacy First" />
   <img src="https://img.shields.io/badge/License-MIT-lightgrey" alt="MIT License" />
 </p>
@@ -34,7 +34,13 @@
 
 ## Table of Contents
 1. [The 3 Scan Engines](#-the-3-scan-engines)
-2. [Core Capabilities & Latest Features](#-core-capabilities--latest-features)
+2. [Trained Neural Decision Models: Laya System 1 v3](#-trained-neural-decision-models-laya-system-1-v3)
+   - [Dual Precision Variants (INT8 vs FP32)](#dual-precision-variants-int8-vs-fp32)
+   - [7 Multi-Task Neural Diagnostic Heads](#7-multi-task-neural-diagnostic-heads)
+   - [WASM Neural Tokenizer & Text Chunker](#wasm-neural-tokenizer--text-chunker)
+   - [Offline Retraction Shield Engine](#offline-retraction-shield-engine)
+   - [Generative vs. Discriminative Model Guardrails](#generative-vs-discriminative-model-guardrails)
+3. [Core Capabilities & Diagnostic Suite](#-core-capabilities--diagnostic-suite)
    - [Universal Categorization & Eligibility Gate](#1-universal-academic-categorization-gate)
    - [Scholarly Publication Detection & Routing](#2-scholarly-publication-detection--routing)
    - [Calibrated Venue Selectivity & Acceptance Forecasting](#3-calibrated-venue-selectivity--acceptance-forecasting)
@@ -44,19 +50,19 @@
    - [Display Items, Figures & Visual Pre-Flight Auditor](#7-display-items-figures--visual-pre-flight-auditor)
    - [Grounded Citation & Retraction Verification](#8-grounded-citation--retraction-verification)
    - [Modular Domain Reporting Guidelines](#9-modular-domain-reporting-guidelines)
-3. [User Interface & Interactive Analytics](#-user-interface--interactive-analytics)
-4. [AI Providers & Model Setup](#-ai-providers--model-setup)
+4. [User Interface & Interactive Analytics](#-user-interface--interactive-analytics)
+5. [AI Providers & Model Setup](#-ai-providers--model-setup)
    - [Local & Offline Models (Laya, WebGPU, Ollama)](#local--offline-providers)
    - [Cloud AI Models (BYOK: Gemini, Groq, OpenRouter, Mistral, OpenAI, Claude)](#cloud-ai-providers-byok)
-5. [Report Export & Academic Tools](#-report-export--academic-tools)
-6. [System Architecture](#-system-architecture)
-7. [How to Run Locally (Step-by-Step)](#-how-to-run-locally-step-by-step)
+6. [Report Export & Academic Tools](#-report-export--academic-tools)
+7. [System Architecture](#-system-architecture)
+8. [How to Run Locally (Step-by-Step)](#-how-to-run-locally-step-by-step)
    - [Method 1: Web Preview (Fastest — No Rust Needed)](#method-1-web-preview-fastest--no-rust-needed)
    - [Method 2: Full Native Desktop App (macOS & Windows)](#method-2-full-native-desktop-app-macos--windows)
-8. [Testing & Scientific Benchmark Suite](#-testing--scientific-benchmark-suite)
-9. [Scholarly Disclaimer & Responsible Use](#-scholarly-disclaimer--responsible-use)
-10. [Privacy & Security Guarantee](#-privacy--security-guarantee)
-11. [License](#-license)
+9. [Testing & Scientific Benchmark Suite](#-testing--scientific-benchmark-suite)
+10. [Scholarly Disclaimer & Responsible Use](#-scholarly-disclaimer--responsible-use)
+11. [Privacy & Security Guarantee](#-privacy--security-guarantee)
+12. [License](#-license)
 
 ---
 
@@ -76,7 +82,80 @@ ManuView provides three distinct, parity-calibrated scanning modalities to fit a
 
 ---
 
-## 🚀 Core Capabilities & Latest Features
+## 🧠 Trained Neural Decision Models: Laya System 1 v3
+
+ManuView embeds custom-trained on-device neural decision models (**Laya System 1 v3**) designed specifically for ultra-fast, air-gapped manuscript diagnostics. Rather than transmitting confidential, unpublished research to third-party cloud servers, Laya executes locally on your CPU/GPU using `onnxruntime-web` with WebAssembly (WASM) and SIMD multi-threading.
+
+### Dual Precision Variants (INT8 vs FP32)
+
+ManuView ships with two pre-compiled, highly-optimized model variants stored locally in `public/models/laya/`:
+
+| Specification | ⚡ Laya System 1 v3 (INT8 Quantized) *(Recommended)* | 🎯 Laya System 1 v3 (FP32 Full Precision) |
+|---|---|---|
+| **Weights File** | `laya_v3_int8.onnx` | `laya_v3_fp32.onnx` |
+| **Model Size** | **22.0 MB** | **86.4 MB** |
+| **Quantization** | 8-bit integer quantization | Uncompressed 32-bit floating point |
+| **Forward Latency** | **~1–3 ms** per sentence chunk | **~5–10 ms** per sentence chunk |
+| **Memory Footprint** | Minimal (~60 MB RAM) | Standard (~180 MB RAM) |
+| **Hardware** | Any laptop, older PC, or low-power CPU | High-performance workstations / multi-core CPUs |
+| **Primary Strength** | Instantaneous real-time audit & highlight | Maximum numerical fidelity across all 7 evaluation heads |
+
+> [!TIP]
+> **Zero-Downtime Model Switching**: Users can seamlessly toggle between INT8 and FP32 via the **Local AI Model Manager** or the **Settings Modal** without restarting the application or re-uploading documents.
+
+---
+
+### 7 Multi-Task Neural Diagnostic Heads
+
+The Laya v3 architecture employs a shared scientific encoder coupled with **seven specialized multi-task prediction heads** that evaluate manuscripts across distinct scientific rigor vectors in a single forward pass:
+
+1. **`noul_logits` (Binary AI Phrasing & Filler Classifier)**:
+   - Evaluates text chunks to calculate the exact probability (`aiProbability`, 0.0 to 1.0) that a passage exhibits synthetic AI filler traits (generic transitions, circular paraphrasing) versus human empirical scientific prose.
+2. **`choice_logits` (4-Class Administrative & Disclosure Classifier)**:
+   - Classifies administrative and scientific disclosure completeness across 4 classes:
+     - Institutional Ethical Clearances (IRB / Animal Welfare)
+     - Data Availability Statements & Repository Grounding
+     - Funding Disclosures & Grant Acknowledgements
+     - Competing Interests & Author Disclosures
+3. **`quality_scores` (6-Dimensional Rubric Evaluator)**:
+   - Computes normalized scalar ratings across the 6 core pillars of scientific evaluation: Methodology, Novelty & Originality, Experimental Rigor, Presentation & Clarity, Disciplinary Impact, and Scholarly Literature Grounding.
+4. **`accept_prob` (Venue Acceptance Forecaster)**:
+   - Predicts empirical publication readiness and baseline acceptance likelihood calibrated against high-selectivity journal acceptance profiles.
+5. **`rhetoric_scores` (Scientific Assertion & Overclaim Audit)**:
+   - Scans rhetorical stance, quantifying causal claims vs. observational evidence to flag unwarranted generalization.
+6. **`citation_scores` (Evidentiary Citation Grounding)**:
+   - Analyzes literature density and claim-to-citation anchoring across narrative paragraphs.
+7. **`hedging_score` (Epistemic Modesty & Certainty Balance)**:
+   - Verifies appropriate academic hedging language in conclusions and discussion sections.
+
+---
+
+### WASM Neural Tokenizer & Text Chunker
+
+- **Client-Side HuggingFace Fast Tokenizer**: Utilizes a bundled `tokenizer.json` (30,000+ vocabulary tokens) with full subword BPE/WordPiece tokenization running entirely in pure TypeScript/WASM. No external Python runtime or network endpoint is required.
+- **Sliding-Window Sentence Chunker**: `src/lib/laya/text-chunker.ts` divides long manuscripts into overlapping sentence and paragraph windows while preserving exact UTF-16 character offsets.
+- **Interactive Visual Highlighting**: In the AI Phrasing & Disclosures view, sentence-level neural classification scores map directly to interactive color-coded text highlights in the manuscript reader.
+
+---
+
+### Offline Retraction Shield Engine
+
+- **Pre-Indexed Retraction Database**: Ships with an offline indexed hash table (`public/models/laya/retraction_shield_index.json`) compiled from verified scholarly retraction registries.
+- **O(1) Hash Lookups**: Every extracted DOI and reference entry is checked in sub-millisecond time without making external HTTP requests, ensuring complete privacy even when operating completely disconnected from the internet.
+
+---
+
+### Generative vs. Discriminative Model Guardrails
+
+ManuView implements an intelligent architectural boundary between discriminative diagnostic models and generative text-generation engines:
+
+- **Discriminative Audit Mode (Laya v3)**: Excels at lightning-fast classification, statistical checks, disclosure audits, and multi-dimensional scoring.
+- **Generative Drafting Mode (LLMs / SLMs)**: Required for generative authoring services such as the *Journal Cover Letter Drafter* and *Review Response Rebuttal Builder*.
+- **`GenerativeModelRequiredView` Guard**: When an author attempts to access generative authoring tools while operating on the Laya discriminative engine, ManuView displays a clear, informative guidance view explaining that discriminative models audit manuscripts, while generative models (Gemini, Claude, GPT, or local WebGPU SLMs) are required to synthesize new letters and rebuttals, providing a single-click shortcut to configure or switch models.
+
+---
+
+## 🚀 Core Capabilities & Diagnostic Suite
 
 ### 1. Universal Academic Categorization Gate
 - **Pre-execution Document Classifier**: Evaluates every document before calling any LLM or inference engine using an authoritative dual-metric heuristic (`academicScore >= 5` with strict IMRaD section pair enforcement).
@@ -229,19 +308,23 @@ Export comprehensive diagnostic reports in multiple publication-ready formats:
 ManuView is engineered as a lightweight, privacy-first desktop client powered by **Tauri v2**, **React 18**, and **Vite**:
 
 ```
+public/
+└── models/
+    └── laya/               # Pre-compiled ONNX models (INT8 & FP32), tokenizer.json, Retraction index
 src/
 ├── components/
 │   ├── dashboard/          # Modularized dashboard cards (Triage, Personas, Citations, etc.)
 │   ├── scan/               # Input dropzone, model picker, and full report viewers
-│   ├── sidebar/            # Collapsible macOS-style sidebar, paper lists, time buckets
-│   ├── charts/             # Radar charts, gauges, donuts, pipeline steppers
-│   └── services/           # Laya Scan, PRISMA flowcharts, Cover Letters, Rebuttal builders
+│   ├── sidebar/            # Collapsible sidebar, paper lists, time buckets
+│   ├── charts/             # Radar charts, gauges, distribution bars, pipeline steppers
+│   └── services/           # Laya Scan, AI Phrasing & Disclosures, PRISMA flowcharts, Cover Letters
 ├── lib/
+│   ├── laya/               # Laya ONNX/WASM neural engine, tokenizer, chunker, model registry
 │   ├── engine/             # Diagnostic orchestrator, Stage 0 integrity, scoring dimensions
-│   ├── laya/               # Laya on-device ONNX/WASM decision model battery & service
 │   ├── webllm/             # WebGPU on-device SLM execution engine (Qwen2.5-0.5B, etc.)
 │   ├── publication-detector.ts # Extended DOI, publisher metadata, and preprint classifier
 │   ├── parser.ts           # Dual-metric academic manuscript vs. non-academic classifier
+│   ├── retractions.ts      # Offline Retraction Shield lookup & CrossRef sync
 │   ├── data/               # Retraction Watch compact DB, 48,000+ journal catalog
 │   ├── statcheck.ts        # Automated statistical consistency and GRIM test checks
 │   ├── citation-recency.ts # Reference recency and self-citation density metrics
@@ -318,10 +401,10 @@ To run ManuView inside a native operating system window with OS file dialogs and
 
 ## 🧪 Testing & Scientific Benchmark Suite
 
-ManuView includes an end-to-end automated test and scientific benchmarking suite with **128 passing tests** across 9 specialized suites:
+ManuView includes an end-to-end automated test and scientific benchmarking suite with **135 passing tests** across 14 specialized suites:
 
 ```bash
-# Run all 128 automated unit and integration tests
+# Run all 135 automated unit and integration tests
 npm test
 
 # Run tests in continuous watch mode
@@ -332,6 +415,7 @@ npm run build
 ```
 
 ### Test Suite Coverage:
+- **`laya-neural-engine.test.ts`**: Verifies ONNX Runtime Web session initialization, INT8 vs. FP32 variant switching, WASM tokenization, tensor feeding, and neural forward pass latency.
 - **`laya-decision-model.test.ts`**: Verifies 27-question evaluation battery, deterministic repeatability, non-academic document discrimination, and signal detail formatting.
 - **`publication-detection.test.ts`**: Validates DOI extraction up to 8,000 characters, publisher identification, Crossref resolution, preprint discrimination, and Stage 0 bypass.
 - **`algorithm-parity-scoring.test.ts`**: Verifies venue selectivity calibration, score caps, and parity across scan engines.
@@ -341,6 +425,8 @@ npm run build
 - **`export-generator.test.ts`**: Tests generation of valid HTML, Word documents, PDFs, LaTeX rebuttal tables, and BibTeX libraries.
 - **`journal-matching.test.ts`**: Verifies catalog lookups, discipline matching, and recommendation consistency across 48,000+ journals.
 - **`parser-integrity.test.ts`**: Tests IMRaD section extraction, language detection, PDF extraction quality, and non-English rejection.
+- **`statcheck.test.ts`**: Checks GRIM consistency, degrees of freedom, and recalculation of reported p-values.
+- **`typesafe-error-sanitization.test.ts`**: Tests sanitization of credentials, safe string fallbacks, and error boundary handling.
 
 ---
 
