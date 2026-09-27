@@ -119,13 +119,12 @@ export async function resolveTypeSafeKey(_explicitKey?: string): Promise<string>
  * Returns available on-device decision models.
  */
 export async function listTypeSafeModels(_apiKey?: string, _baseUrl?: string): Promise<TypeSafeModelInfo[]> {
-  return [
-    {
-      name: LAYA_MODEL.id,
-      description: `${LAYA_MODEL.name} (${LAYA_MODEL.architecture}, ${LAYA_MODEL.parameters}) — 100% on-device`,
-      release_date: "2025-02-01",
-    },
-  ];
+  const { LAYA_MODEL_VARIANTS } = await import("./laya/laya-model-registry");
+  return LAYA_MODEL_VARIANTS.map((v) => ({
+    name: v.id,
+    description: `${v.name} (${v.size}) — 100% on-device`,
+    release_date: "2025-02-01",
+  }));
 }
 
 /**
