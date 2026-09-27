@@ -856,7 +856,7 @@ export function DesktopDashboard({
         <div className="sticky top-0 z-40 px-6 sm:px-10 py-3 transition-colors pointer-events-none">
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 pointer-events-auto">
             {/* Tab Navigation (Liquid Glass Pill container) */}
-            <div className="flex items-center gap-1.5 p-1.5 rounded-full liquid-glass-card border border-black/[0.06] dark:border-white/[0.08] shadow-md overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1.5 p-1.5 rounded-full liquid-glass-card border border-black/[0.06] dark:border-white/[0.08] shadow-md overflow-x-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 type="button"
                 onClick={() => onSelectView("overview")}
