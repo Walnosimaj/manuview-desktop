@@ -314,11 +314,11 @@ export const DashboardCitationsSection: React.FC<DashboardCitationsSectionProps>
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 justify-end shrink-0">
           <button
             type="button"
             onClick={handleLoadBenchmarkReferences}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer shadow-xs shrink-0"
             title="Load benchmark bibliography with clean papers and landmark retractions to test Retraction Shield"
           >
             <ShieldCheck className="w-3.5 h-3.5" />
@@ -329,30 +329,19 @@ export const DashboardCitationsSection: React.FC<DashboardCitationsSectionProps>
             type="button"
             onClick={handleReauditReferences}
             disabled={isValidatingRefs}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold liquid-glass-btn-secondary transition cursor-pointer disabled:opacity-50 shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold liquid-glass-btn-secondary transition cursor-pointer disabled:opacity-50 shadow-xs shrink-0"
             title="Re-verify all bibliography DOIs and check Retraction Watch"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isValidatingRefs ? "animate-spin text-blue-600" : "text-neutral-600 dark:text-neutral-300"}`} />
             <span>{isValidatingRefs ? "Auditing..." : "Audit / Re-validate"}</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setPastedRefsError(null);
-              setIsAddRefsOpen(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold liquid-glass-btn-primary text-white transition cursor-pointer shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Load / Add References</span>
-          </button>
-
-          {references.length > 0 && onExportBibTeX && (
+          {onExportBibTeX && (
             <button
               type="button"
               onClick={onExportBibTeX}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold liquid-glass-btn-secondary transition cursor-pointer shadow-xs"
+              disabled={references.length === 0}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold liquid-glass-btn-secondary transition cursor-pointer shadow-xs shrink-0 disabled:opacity-50"
               title="Export all validated references to BibTeX"
             >
               <Bookmark className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />

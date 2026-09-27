@@ -186,6 +186,12 @@ export function DesktopResponseBuilderView({ onOpenSettings }: DesktopResponseBu
 
     try {
       const providerConfig = await resolveActiveConfig();
+      if (providerConfig.provider === "laya" || providerConfig.provider === "typesafe") {
+        setError("The currently active model (Laya System 1 v3) is an on-device diagnostic neural engine, not a generative language model. Synthesizing a rebuttal matrix requires a generative model (such as Gemini, OpenAI, Claude, or local Ollama). Please open Settings to configure a generative model.");
+        setLoading(false);
+        return;
+      }
+
       const isConfigUsable =
         providerConfig.provider === "ollama" ||
         providerConfig.provider === "webllm" ||

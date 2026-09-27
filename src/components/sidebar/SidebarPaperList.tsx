@@ -58,20 +58,6 @@ export function SidebarPaperList({
   onDeleteMultiplePapers,
 }: SidebarPaperListProps) {
   const [isArticlesExpanded, setIsArticlesExpanded] = useState(true);
-  const [collapsedSubmenus, setCollapsedSubmenus] = useState<Set<string>>(new Set());
-
-  const toggleSubmenu = (paperId: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setCollapsedSubmenus((prev) => {
-      const next = new Set(prev);
-      if (next.has(paperId)) {
-        next.delete(paperId);
-      } else {
-        next.add(paperId);
-      }
-      return next;
-    });
-  };
 
   return (
     <div>
@@ -221,12 +207,6 @@ export function SidebarPaperList({
                       paper.targetJournalEvaluation?.isDisciplinaryMismatch === true ||
                       paper.isDeskReject === true);
 
-                  const hasSubviews =
-                    paper.scanType !== "laya" &&
-                    paper.scanType !== "typesafe" &&
-                    !isAlreadyPublished &&
-                    (paper.isEligibleForReview !== false || isDeskReject);
-
                   const apiLabel = getPaperApiLabel(paper);
 
                   return (
@@ -240,14 +220,6 @@ export function SidebarPaperList({
                               onSelectPaper(paper.id);
                             }
                             onSelectView("overview");
-                            setCollapsedSubmenus((prev) => {
-                              if (prev.has(paper.id)) {
-                                const next = new Set(prev);
-                                next.delete(paper.id);
-                                return next;
-                              }
-                              return prev;
-                            });
                           }
                         }}
                         className={`group/item w-full flex items-center justify-between px-2 py-1.5 rounded-xl text-xs text-left transition cursor-pointer select-none ${
@@ -341,40 +313,6 @@ export function SidebarPaperList({
                             <ApiProviderIcon apiLabel={apiLabel} className="w-3.5 h-3.5 shrink-0" />
                           </span>
                         )}
-
-                        {!isReviewing && !isFailed && hasSubviews && (
-                          <div className="overflow-hidden max-w-0 opacity-0 group-hover/item:max-w-[28px] group-hover/item:opacity-100 group-hover/item:ml-1 transition-all duration-200 ease-out flex items-center shrink-0">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!isSelected) {
-                                  onSelectPaper(paper.id);
-                                  onSelectView("overview");
-                                  setCollapsedSubmenus((prev) => {
-                                    const next = new Set(prev);
-                                    next.delete(paper.id);
-                                    return next;
-                                  });
-                                } else {
-                                  toggleSubmenu(paper.id, e);
-                                }
-                              }}
-                              title={
-                                collapsedSubmenus.has(paper.id)
-                                  ? "Expand review sections"
-                                  : "Collapse review sections"
-                              }
-                              className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition cursor-pointer"
-                            >
-                              <ChevronDown
-                                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                                  collapsedSubmenus.has(paper.id) ? "-rotate-90" : ""
-                                }`}
-                              />
-                            </button>
-                          </div>
-                        )}
                       </div>
                     </div>
 
@@ -386,76 +324,6 @@ export function SidebarPaperList({
                         </div>
                       </div>
                     )}
-
-
-                    {/* Sub-views list for currently selected paper (only for persona reviews with multi-perspective sub-views) */}
-                    {isSelected &&
-                      !isReviewing &&
-                      !isFailed &&
-                      hasSubviews &&
-                      !collapsedSubmenus.has(paper.id) && (
-                        <div className="pl-4 pr-2 py-1 space-y-0.5 animate-in fade-in duration-150">
-                          <button
-                            type="button"
-                            onClick={() => onSelectView("personas")}
-                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition text-left cursor-pointer btn-interactive ${
-                              activeView === "personas"
-                                ? "liquid-glass-tab-active font-semibold text-[#111827] dark:text-white"
-                                : "text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#111827] dark:hover:text-white"
-                            }`}
-                          >
-                            {isDeskReject ? (
-                              <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
-                            ) : (
-                              <Users className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-                            )}
-                            <span className="truncate">
-                              {isDeskReject
-                                ? "Triage & 5-Persona Reviews"
-                                : "5-Persona Reviews"}
-                            </span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => onSelectView("dimensions")}
-                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition text-left cursor-pointer btn-interactive ${
-                              activeView === "dimensions"
-                                ? "liquid-glass-tab-active font-semibold text-[#111827] dark:text-white"
-                                : "text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#111827] dark:hover:text-white"
-                            }`}
-                          >
-                            <BarChart3 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span className="truncate">6 Scoring Dimensions</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => onSelectView("issues")}
-                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition text-left cursor-pointer btn-interactive ${
-                              activeView === "issues"
-                                ? "liquid-glass-tab-active font-semibold text-[#111827] dark:text-white"
-                                : "text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#111827] dark:hover:text-white"
-                            }`}
-                          >
-                            <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                            <span className="truncate">Priority Action Items</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => onSelectView("journals")}
-                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition text-left cursor-pointer btn-interactive ${
-                              activeView === "journals" || activeView === "recommendations"
-                                ? "liquid-glass-tab-active font-semibold text-[#111827] dark:text-white"
-                                : "text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#111827] dark:hover:text-white"
-                            }`}
-                          >
-                            <BookOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                            <span className="truncate">Target Journals</span>
-                          </button>
-                        </div>
-                      )}
                   </div>
                 );
               })}
