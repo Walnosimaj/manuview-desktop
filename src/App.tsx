@@ -19,6 +19,7 @@ import { DesktopPrismaView } from "@/components/services/DesktopPrismaView";
 import { DesktopReportingChecklistView } from "@/components/services/DesktopReportingChecklistView";
 import { DesktopCoverLetterView } from "@/components/services/DesktopCoverLetterView";
 import { DesktopResponseBuilderView } from "@/components/services/DesktopResponseBuilderView";
+import { GenerativeModelRequiredView } from "@/components/services/GenerativeModelRequiredView";
 import { DesktopLayaScanView } from "@/components/services/DesktopLayaScanView";
 import { DesktopLayaDashboardView } from "@/components/services/DesktopLayaDashboardView";
 import { DesktopAiDetectionView } from "@/components/services/DesktopAiDetectionView";
@@ -719,6 +720,15 @@ function AppWorkspace({
       return <DesktopReferenceView />;
     }
     if (activeTabId === "tool-citation-claim") {
+      if (provider === "laya" || provider === "typesafe") {
+        return (
+          <GenerativeModelRequiredView
+            serviceName="Citation Claim Validator"
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onBack={() => setActiveTabId(papers.length > 0 ? papers[0].id : null)}
+          />
+        );
+      }
       return <DesktopCitationClaimView onOpenSettings={() => setIsSettingsOpen(true)} />;
     }
     if (activeTabId === "tool-prisma") {
@@ -728,9 +738,27 @@ function AppWorkspace({
       return <DesktopReportingChecklistView />;
     }
     if (activeTabId === "tool-cover-letter") {
+      if (provider === "laya" || provider === "typesafe") {
+        return (
+          <GenerativeModelRequiredView
+            serviceName="Journal Cover Letter Generator"
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onBack={() => setActiveTabId(papers.length > 0 ? papers[0].id : null)}
+          />
+        );
+      }
       return <DesktopCoverLetterView onOpenSettings={() => setIsSettingsOpen(true)} />;
     }
     if (activeTabId === "tool-response-builder") {
+      if (provider === "laya" || provider === "typesafe") {
+        return (
+          <GenerativeModelRequiredView
+            serviceName="Reviewer Response Matrix Builder"
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onBack={() => setActiveTabId(papers.length > 0 ? papers[0].id : null)}
+          />
+        );
+      }
       return <DesktopResponseBuilderView onOpenSettings={() => setIsSettingsOpen(true)} />;
     }
     if (activeTabId === "tool-laya-scan" || activeTabId === "tool-typesafe-scan") {
