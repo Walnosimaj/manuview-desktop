@@ -778,147 +778,187 @@ export function DesktopDashboard({
 
   // --- Section 1: The 6 Evaluation Dimensions ---
   return (
-    <div className="flex-1 overflow-y-auto p-6 sm:p-10 text-[#1E293B] dark:text-[#E2E8F0]">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* ========================================================= */}
-        {/* SUB-VIEW TOP NAVIGATION (Only visible when in a sub-view) */}
-        {/* ========================================================= */}
-        {activeView !== "overview" && (
-          <div className="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => onSelectView("overview")}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold liquid-glass-btn-secondary text-[#2563EB] dark:text-blue-400 transition cursor-pointer"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back to Overview</span>
-              </button>
-              <span className="text-neutral-300 dark:text-neutral-600">/</span>
-              <span className="text-xs font-bold text-[#0F172A] dark:text-white">
-                {activeView === "personas" && (isDeskReject ? (personas.length <= 1 ? "Editorial Triage Decision" : `${personas.length || 5} Expert Reviewer Panel (Scope Triage)`) : `${personas.length || 5} Expert Reviewer Panel`)}
-                {activeView === "dimensions" && "6 Scoring Dimensions"}
-                {activeView === "issues" && `Priority Action Items (${issues.length})`}
-                {(activeView === "journals" || activeView === "recommendations") &&
-                  `Target Journals (${journals.length || 3})`}
-                {activeView === "citations" && "Reference Integrity"}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-neutral-400 dark:text-neutral-500 font-medium truncate max-w-md hidden md:inline">
-                {title}
-              </span>
-              <button
-                type="button"
-                onClick={handlePrint}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold liquid-glass-btn-secondary text-neutral-700 dark:text-neutral-300 transition cursor-pointer"
-                title="Print or Save as PDF"
-              >
-                <Printer className="w-3.5 h-3.5 text-neutral-600 dark:text-neutral-400" />
-                <span>Print / PDF</span>
-              </button>
-            </div>
+    <div className="flex-1 overflow-y-auto text-[#1E293B] dark:text-[#E2E8F0]">
+      {/* ========================================================= */}
+      {/* STICKY TOP TAB NAVIGATION BAR (FIXED ON SCROLL)           */}
+      {/* ========================================================= */}
+      <div className="sticky top-0 z-40 bg-[#F8FAFC]/90 dark:bg-[#0B1120]/90 backdrop-blur-xl border-b border-black/[0.06] dark:border-white/[0.08] px-6 sm:px-10 py-2.5 transition-colors shadow-2xs">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+          {/* Tab Navigation (Pill container) */}
+          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-white/70 dark:bg-[#161F30]/70 border border-black/[0.06] dark:border-white/[0.08] backdrop-blur-md overflow-x-auto no-scrollbar shadow-2xs">
+            <button
+              type="button"
+              onClick={() => onSelectView("overview")}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                activeView === "overview"
+                  ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Overview</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectView("personas")}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                activeView === "personas"
+                  ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>{isDeskReject ? (personas.length <= 1 ? "Editorial Decision" : `${personas.length || 5} Reviewers`) : `${personas.length || 5} Reviewers`}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectView("dimensions")}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                activeView === "dimensions"
+                  ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>6 Dimensions &amp; Radar</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectView("issues")}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                activeView === "issues"
+                  ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+              }`}
+            >
+              <AlertCircle className="w-3.5 h-3.5" />
+              <span>Priority Issues ({issues.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectView("journals")}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                activeView === "journals" || activeView === "recommendations"
+                  ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>Target Journals</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectView("citations")}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                activeView === "citations"
+                  ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Retraction Shield</span>
+            </button>
           </div>
-        )}
 
-        {/* ========================================================= */}
-        {/* MAIN ARTICLE VIEW (EXACTLY 3 CARDS AS PER DESIGN SPEC)   */}
-        {/* ========================================================= */}
-        {activeView === "overview" && (
-          <div className="space-y-6 animate-fade-in">
-            {/* CARD 1: ManuView Diagnostic Suite Header Card */}
-            <div className="rounded-3xl liquid-glass-card p-6 sm:p-8 space-y-6">
-              {/* Brand line & Target badge */}
-              <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]/80 dark:border-[#1F2937]">
-                <div className="flex items-center">
-                  <span className="font-bold text-base tracking-tight text-[#0F172A] dark:text-white">
-                    Manu<span className="text-[#2563EB] dark:text-blue-400">View</span> Diagnostic Suite
-                  </span>
-                </div>
+          {/* Right Action Buttons: Export Dropdown + Delete */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Export Dropdown */}
+            <div className="relative" ref={exportDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsExportOpen((prev) => !prev)}
+                disabled={activeExportFormat !== null}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs cursor-pointer disabled:opacity-50"
+                title="Export diagnostic report in multiple academic formats"
+                aria-expanded={isExportOpen}
+              >
+                {activeExportFormat ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Download className="w-3.5 h-3.5" />
+                )}
+                <span>Export</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExportOpen ? "rotate-180" : ""}`} />
+              </button>
 
-                <div className="flex items-center gap-2">
+              {isExportOpen && (
+                <div className="absolute right-0 mt-1.5 w-52 rounded-2xl bg-white dark:bg-[#161F30] border border-black/10 dark:border-white/10 shadow-xl p-1.5 z-50 animate-fade-in text-xs">
                   <button
                     type="button"
-                    onClick={() => openJournalWebsite(targetJournal)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#EFF6FF] dark:bg-blue-950/50 border border-[#BFDBFE]/70 dark:border-blue-800/70 text-xs font-semibold text-[#2563EB] dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition cursor-pointer"
-                    title="Click to visit official journal website via OpenAlex"
+                    disabled={activeExportFormat !== null}
+                    onClick={(e) => handleExportFormat("word", e)}
+                    className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 rounded-lg"
                   >
-                    <Globe className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>Target: {targetJournal}</span>
+                    <FileText className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span>{activeExportFormat === "word" ? "Exporting Word..." : "Word Document (.doc)"}</span>
                   </button>
+                  <button
+                    type="button"
+                    disabled={activeExportFormat !== null}
+                    onClick={(e) => handleExportFormat("html", e)}
+                    className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 rounded-lg"
+                  >
+                    <Globe className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span>{activeExportFormat === "html" ? "Exporting HTML..." : "Interactive HTML (.html)"}</span>
+                  </button>
+                  <div className="my-1 border-t border-neutral-100 dark:border-neutral-800" />
+                  <button
+                    type="button"
+                    disabled={activeExportFormat !== null}
+                    onClick={(e) => handleExportFormat("pdf", e)}
+                    className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 rounded-lg"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                    <span>{activeExportFormat === "pdf" ? "Exporting PDF..." : "PDF Document (.pdf)"}</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
-                  {/* Export Options Dropdown */}
-                  <div className="relative" ref={exportDropdownRef}>
-                    <button
-                      type="button"
-                      onClick={() => setIsExportOpen((prev) => !prev)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-[#161F30] text-neutral-700 dark:text-neutral-200 border border-[#E5E7EB] dark:border-[#334155] hover:bg-neutral-50 dark:hover:bg-[#1E293B] transition shadow-2xs cursor-pointer"
-                      title="Export diagnostic report in multiple academic formats"
-                      aria-expanded={isExportOpen}
-                    >
-                      <Download className="w-3.5 h-3.5 text-[#2563EB] dark:text-blue-400" />
-                      <span>Export</span>
-                      <ChevronDown className={`w-3 h-3 text-neutral-400 transition-transform ${isExportOpen ? "rotate-180" : ""}`} />
-                    </button>
-                    {isExportOpen && (
-                      <div className="absolute right-0 top-full mt-1 w-52 rounded-xl bg-white dark:bg-[#161F30] border border-[#E5E7EB] dark:border-[#334155] shadow-lg py-1.5 z-30 transition-all animate-fade-in">
-                        <button
-                          type="button"
-                          disabled={activeExportFormat !== null}
-                          onClick={(e) => handleExportFormat("word", e)}
-                          className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50"
-                        >
-                          {activeExportFormat === "word" ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-500 shrink-0" />
-                          ) : (
-                            <FileText className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                          )}
-                          <span>{activeExportFormat === "word" ? "Exporting Word..." : "Word Document (.doc)"}</span>
-                        </button>
-                        <button
-                          type="button"
-                          disabled={activeExportFormat !== null}
-                          onClick={(e) => handleExportFormat("html", e)}
-                          className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50"
-                        >
-                          {activeExportFormat === "html" ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-500 shrink-0" />
-                          ) : (
-                            <Globe className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                          )}
-                          <span>{activeExportFormat === "html" ? "Exporting HTML..." : "Interactive HTML (.html)"}</span>
-                        </button>
-                        <div className="my-1 border-t border-neutral-100 dark:border-neutral-800" />
-                        <button
-                          type="button"
-                          disabled={activeExportFormat !== null}
-                          onClick={(e) => handleExportFormat("pdf", e)}
-                          className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50"
-                        >
-                          {activeExportFormat === "pdf" ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-500 shrink-0" />
-                          ) : (
-                            <Printer className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                          )}
-                          <span>{activeExportFormat === "pdf" ? "Exporting PDF..." : "PDF Document (.pdf)"}</span>
-                        </button>
-                      </div>
-                    )}
+            {onDeleteArticle && (
+              <button
+                type="button"
+                onClick={onDeleteArticle}
+                title="Delete manuscript project"
+                className="p-1.5 rounded-lg text-neutral-400 dark:text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-neutral-200/60 dark:border-[#334155] hover:border-rose-200 transition cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area (Scrolls Underneath) */}
+      <div className="p-6 sm:p-10">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* ========================================================= */}
+          {/* MAIN ARTICLE VIEW (EXACTLY 3 CARDS AS PER DESIGN SPEC)   */}
+          {/* ========================================================= */}
+          {activeView === "overview" && (
+            <div className="space-y-6 animate-fade-in">
+              {/* CARD 1: ManuView Diagnostic Suite Header Card */}
+              <div className="rounded-3xl liquid-glass-card p-6 sm:p-8 space-y-6">
+                {/* Brand line & Target badge */}
+                <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]/80 dark:border-[#1F2937]">
+                  <div className="flex items-center">
+                    <span className="font-bold text-base tracking-tight text-[#0F172A] dark:text-white">
+                      Manu<span className="text-[#2563EB] dark:text-blue-400">View</span> Diagnostic Suite
+                    </span>
                   </div>
 
-                  {onDeleteArticle && (
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={onDeleteArticle}
-                      title="Delete manuscript project"
-                      className="p-1.5 rounded-lg text-neutral-400 dark:text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-neutral-200/60 dark:border-[#334155] hover:border-rose-200 transition cursor-pointer"
+                      onClick={() => openJournalWebsite(targetJournal)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#EFF6FF] dark:bg-blue-950/50 border border-[#BFDBFE]/70 dark:border-blue-800/70 text-xs font-semibold text-[#2563EB] dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition cursor-pointer"
+                      title="Click to visit official journal website via OpenAlex"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Globe className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span>Target: {targetJournal}</span>
                     </button>
-                  )}
+                  </div>
                 </div>
-              </div>
 
               {/* Manuscript Title & Status Header (PureMac style) */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
@@ -1720,6 +1760,7 @@ export function DesktopDashboard({
             }}
           />
         )}
+        </div>
       </div>
 
       {/* Export Toast Notification */}
