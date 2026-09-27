@@ -94,6 +94,8 @@ export interface NeuralInferenceResult {
   isAiFiller: boolean;
   choiceProbabilities: number[];
   toneScore: number;
+  qualityScores?: number[];
+  acceptProb?: number;
   modelUsed: string;
   latencyMs: number;
 }
@@ -147,12 +149,32 @@ export async function runLayaNeuralInference(
     }
   }
 
-  // Extract Tone
+  // Extract Quality Scores (6 dimensions in v2)
+  let qualityScores: number[] | undefined;
   let toneScore = 0.75;
+  if (results.quality_scores) {
+    const rawQuality = Array.from(results.quality_scores.data as Float32Array);
+    qualityScores = rawQuality.map((q) => Number(q.toFixed(3)));
+    if (qualityScores.length > 0) {
+      const avg = qualityScores.reduce((a, b) => a + b, 0) / qualityScores.length;
+      toneScore = Number(avg.toFixed(3));
+    }
+  }
+
+  // Extract Tone (v1 backwards compatibility)
   if (results.tone_score) {
     const rawTone = Array.from(results.tone_score.data as Float32Array);
     if (rawTone.length > 0) {
       toneScore = Number(rawTone[0].toFixed(3));
+    }
+  }
+
+  // Extract Acceptance Probability (v2)
+  let acceptProb: number | undefined;
+  if (results.accept_prob) {
+    const rawAccept = Array.from(results.accept_prob.data as Float32Array);
+    if (rawAccept.length > 0) {
+      acceptProb = Number(rawAccept[0].toFixed(3));
     }
   }
 
@@ -163,6 +185,8 @@ export async function runLayaNeuralInference(
     isAiFiller: aiProbability >= 0.50,
     choiceProbabilities,
     toneScore,
+    qualityScores,
+    acceptProb,
     modelUsed: currentVariant.name,
     latencyMs,
   };

@@ -22,10 +22,10 @@ describe("Laya Model Registry & Selection", () => {
 
     assert.ok(int8, "INT8 variant must exist");
     assert.ok(fp32, "FP32 variant must exist");
-    assert.equal(int8?.filename, "laya_system1_int8.onnx");
-    assert.equal(fp32?.filename, "laya_system1_fp32.onnx");
-    assert.equal(int8?.size, "22.9 MB");
-    assert.equal(fp32?.size, "90.4 MB");
+    assert.equal(int8?.filename, "laya_v2_int8.onnx");
+    assert.equal(fp32?.filename, "laya_v2_fp32.onnx");
+    assert.equal(int8?.size, "23.0 MB");
+    assert.equal(fp32?.size, "90.6 MB");
   });
 
   it("allows switching between INT8 and FP32 models", () => {
