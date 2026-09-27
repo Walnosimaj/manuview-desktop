@@ -96,6 +96,9 @@ export interface NeuralInferenceResult {
   toneScore: number;
   qualityScores?: number[];
   acceptProb?: number;
+  rhetoricScores?: number[];
+  citationScores?: number[];
+  hedgingScore?: number;
   modelUsed: string;
   latencyMs: number;
 }
@@ -169,12 +172,35 @@ export async function runLayaNeuralInference(
     }
   }
 
-  // Extract Acceptance Probability (v2)
+  // Extract Acceptance Probability
   let acceptProb: number | undefined;
   if (results.accept_prob) {
     const rawAccept = Array.from(results.accept_prob.data as Float32Array);
     if (rawAccept.length > 0) {
       acceptProb = Number(rawAccept[0].toFixed(3));
+    }
+  }
+
+  // Extract Rhetoric moves / structure (v3)
+  let rhetoricScores: number[] | undefined;
+  if (results.rhetoric_logits) {
+    const rawRhetoric = Array.from(results.rhetoric_logits.data as Float32Array);
+    rhetoricScores = softmax(rawRhetoric).map((p) => Number(p.toFixed(4)));
+  }
+
+  // Extract Citation integrity (v3)
+  let citationScores: number[] | undefined;
+  if (results.citation_logits) {
+    const rawCitation = Array.from(results.citation_logits.data as Float32Array);
+    citationScores = softmax(rawCitation).map((p) => Number(p.toFixed(4)));
+  }
+
+  // Extract Causal Hedging score (v3)
+  let hedgingScore: number | undefined;
+  if (results.hedging_score) {
+    const rawHedging = Array.from(results.hedging_score.data as Float32Array);
+    if (rawHedging.length > 0) {
+      hedgingScore = Number(rawHedging[0].toFixed(3));
     }
   }
 
@@ -187,6 +213,9 @@ export async function runLayaNeuralInference(
     toneScore,
     qualityScores,
     acceptProb,
+    rhetoricScores,
+    citationScores,
+    hedgingScore,
     modelUsed: currentVariant.name,
     latencyMs,
   };

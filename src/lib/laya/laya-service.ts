@@ -9,6 +9,7 @@
 
 import { getLayaNeuralSession, runLayaNeuralInference } from "./laya-neural-engine";
 import { getSelectedLayaModelVariant } from "./laya-model-registry";
+import { loadRetractionShieldIndex } from "../retractions";
 
 export interface LayaModelInfo {
   id: string;
@@ -21,12 +22,12 @@ export interface LayaModelInfo {
 
 export const LAYA_MODEL: LayaModelInfo = {
   id: "laya-system1-int8",
-  name: "Laya System 1 v2 Decision Model",
-  sizeMB: 23,
+  name: "Laya System 1 v3 Decision Model",
+  sizeMB: 22,
   architecture: "ModernBERT-large",
   parameters: "421M",
   description:
-    "On-device non-autoregressive decision model for structured manuscript screening, rigor rubric grading, and journal alignment. 100% local ONNX runtime (INT8 / FP32).",
+    "On-device non-autoregressive decision model with 7 multi-task heads for structured manuscript screening, rigor rubric grading, rhetoric scoring, and journal alignment. 100% local ONNX runtime (INT8 / FP32).",
 };
 
 export type LayaModelState =
@@ -149,7 +150,11 @@ export async function initLayaModel(
   });
 
   try {
-    const session = await getLayaNeuralSession();
+    // Warm up the neural session and the retraction shield index concurrently
+    const [session] = await Promise.all([
+      getLayaNeuralSession(),
+      loadRetractionShieldIndex().catch((e) => console.debug("Retraction shield load error:", e)),
+    ]);
     activeSession = session;
 
     notifyListeners({
@@ -182,7 +187,7 @@ export function unloadLayaModel(): void {
   notifyListeners({
     state: "ready",
     progress: 1,
-    statusText: "Idle (Local ONNX v2)",
+    statusText: "Idle (Local ONNX v3)",
   });
 }
 
