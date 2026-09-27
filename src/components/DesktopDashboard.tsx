@@ -1019,6 +1019,9 @@ export function DesktopDashboard({
                 detectedDiscipline={matchingJournalsData.detectedDiscipline}
                 targetJournalEvaluation={targetJournalEval}
                 overallScore={overallScore}
+                citationIntegrity={effectiveReport?.citationIntegrity || fullReport?.citationIntegrity || currentReport?.citationIntegrity}
+                reviewerCount={effectiveReport?.reviewerPersonas?.length || fullReport?.reviewerPersonas?.length || currentReport?.reviewerPersonas?.length || 3}
+                journalCount={displayJournals.length + (matchingJournalsData.otherMatches?.length || 0)}
                 onSelectView={onSelectView}
                 onNewScan={onNewScan}
                 handlePrint={handlePrint}
