@@ -769,6 +769,8 @@ function AppWorkspace({
           <DesktopLayaDashboardView
             paper={currentPaper}
             scanResult={currentPaper.layaResult || currentPaper.typesafeResult}
+            activeView={activeView}
+            onSelectView={(view) => setActiveView(view)}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onNewScan={() => !isScanning && handleOpenService("ai-review")}
             onDeleteArticle={() => setPapersToDelete(currentPaper ? [currentPaper] : null)}

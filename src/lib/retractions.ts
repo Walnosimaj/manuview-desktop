@@ -57,6 +57,55 @@ const NOTICE_DOIS_SET = new Set<string>((retractionDb.noticeDois || []).map((d: 
 const REASON_CATALOG: string[] = retractionDb.reasonCatalog || [];
 const DOI_REASONS: Record<string, number> = (retractionDb.doiReasons as Record<string, number>) || {};
 
+// Retraction Shield Index for on-device, offline retraction detection
+let retractionShieldIndex: Record<string, { title?: string; reason?: string }> | null = null;
+let isShieldLoading = false;
+
+/**
+ * Loads the bundled on-device Retraction Shield index (18MB dictionary)
+ */
+export async function loadRetractionShieldIndex(): Promise<Record<string, { title?: string; reason?: string }> | null> {
+  if (retractionShieldIndex) return retractionShieldIndex;
+  if (isShieldLoading) return null;
+  isShieldLoading = true;
+  try {
+    if (typeof process !== "undefined" && process.versions?.node) {
+      try {
+        const fs = await import("fs");
+        const path = await import("path");
+        const p = path.join(process.cwd(), "public", "models", "laya", "retraction_shield_index.json");
+        if (fs.existsSync(p)) {
+          const raw = fs.readFileSync(p, "utf-8");
+          retractionShieldIndex = JSON.parse(raw);
+          return retractionShieldIndex;
+        }
+      } catch {}
+    }
+    if (typeof fetch !== "undefined") {
+      const res = await fetch("/models/laya/retraction_shield_index.json");
+      if (res.ok) {
+        retractionShieldIndex = await res.json();
+        return retractionShieldIndex;
+      }
+    }
+  } catch (err) {
+    console.debug("Failed to load Laya Retraction Shield index:", err);
+  } finally {
+    isShieldLoading = false;
+  }
+  return retractionShieldIndex;
+}
+
+export function isRetractionShieldLoaded(): boolean {
+  return retractionShieldIndex !== null;
+}
+
+export function getRetractionShieldEntry(doi: string): { title?: string; reason?: string } | null {
+  if (!doi) return null;
+  const cleanDoi = doi.trim().toLowerCase().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, "").replace(/[.,;)\]]+$/, "");
+  return retractionShieldIndex?.[cleanDoi] || null;
+}
+
 export function checkRetractionStatus(doi?: string, textOrTitle?: string): RetractionCheckResult {
   if (doi) {
     const cleanDoi = doi
@@ -81,6 +130,21 @@ export function checkRetractionStatus(doi?: string, textOrTitle?: string): Retra
       const specificReason = typeof reasonIdx === "number" && REASON_CATALOG[reasonIdx]
         ? `Retracted: ${REASON_CATALOG[reasonIdx]}`
         : "Retracted: Formally retracted according to the Retraction Watch Database.";
+
+      return {
+        isRetracted: true,
+        isExpressionOfConcern: false,
+        reason: specificReason,
+        source: "retraction_watch",
+      };
+    }
+
+    // 2b. Check on-device Laya Retraction Shield Index
+    if (retractionShieldIndex && retractionShieldIndex[cleanDoi]) {
+      const entry = retractionShieldIndex[cleanDoi];
+      const specificReason = entry.reason
+        ? `Retracted: ${entry.reason.replace(/;$/, "").replace(/;/g, "; ")}`
+        : "Retracted: Formally flagged in Laya Retraction Shield Database.";
 
       return {
         isRetracted: true,
