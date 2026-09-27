@@ -224,7 +224,7 @@ export function DesktopLayaDashboardView({
           : `Cleared initial editorial screening. The manuscript aligns with ${paper.journal} scope and standards.`,
         confidence: 0.95,
       },
-      dimensions: (() => {
+      dimensions: scanResult?.dimensions || (() => {
         const toDimScore = (pct: number, verdictText: string, dimLabel: string): DimensionScore => {
           const score1to5 = Math.max(1, Math.min(5, Math.round((pct / 100) * 4) + 1));
           return {
@@ -279,22 +279,24 @@ export function DesktopLayaDashboardView({
         reviewerQuote: f.detail || `${f.label}: ${f.display}`,
         actionableFix: `Address ${f.label.toLowerCase()} findings to protect against desk rejection.`,
       })),
-      reviewerPersonas: [
-        {
-          persona: "methods_reviewer",
-          name: "Fast Evaluation Battery",
-          title: "Calibrated Academic Decision Classifier",
-          affiliation: "Laya Decision Model (On-Device)",
-          expertise: "Multi-Criteria Academic Manuscript Screening",
-          roleDescription: "Evaluates empirical rigor, methodology, and target journal fit with calibrated probabilities",
-          decisionRecommendation: isDeskReject ? "Desk Reject" : score >= 80 ? "Minor Revision" : "Major Revision",
-          keyChallenge: flags[0]?.detail || (flags[0] ? `${flags[0].label}: ${flags[0].display}` : "Methodological clarification and journal standards fit"),
-          assessment: summaryText,
-          majorCritiques: flags.map((f) => f.detail || `${f.label}: ${f.display}`),
-          missingControlsOrAnalyses: [],
-          mustAddressItems: flags.filter((f) => f.tone === "bad").map((f) => f.detail || `${f.label}: ${f.display}`),
-        },
-      ],
+      reviewerPersonas: (scanResult?.reviewerPersonas && scanResult.reviewerPersonas.length > 0)
+        ? scanResult.reviewerPersonas
+        : [
+            {
+              persona: "methods_reviewer",
+              name: "Fast Evaluation Battery",
+              title: "Calibrated Academic Decision Classifier",
+              affiliation: "Laya Decision Model (On-Device)",
+              expertise: "Multi-Criteria Academic Manuscript Screening",
+              roleDescription: "Evaluates empirical rigor, methodology, and target journal fit with calibrated probabilities",
+              decisionRecommendation: isDeskReject ? "Desk Reject" : score >= 80 ? "Minor Revision" : "Major Revision",
+              keyChallenge: flags[0]?.detail || (flags[0] ? `${flags[0].label}: ${flags[0].display}` : "Methodological clarification and journal standards fit"),
+              assessment: summaryText,
+              majorCritiques: flags.map((f) => f.detail || `${f.label}: ${f.display}`),
+              missingControlsOrAnalyses: [],
+              mustAddressItems: flags.filter((f) => f.tone === "bad").map((f) => f.detail || `${f.label}: ${f.display}`),
+            },
+          ],
       journalRecommendations: [
         {
           tier: "Realistic",
