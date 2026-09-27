@@ -77,14 +77,14 @@ async function evaluateNoul(state: string, question: LayaNoulQuestion): Promise<
   }
 
   // Run neural model forward pass
+  let neuralProb: number | null = null;
   try {
     const neural = await runLayaNeuralInference(text);
-    return { probability: neural.aiProbability };
+    neuralProb = neural.aiProbability;
   } catch (err) {
     console.debug("Neural forward pass fallback to heuristic evaluator:", err);
   }
 
-  // Fast deterministic fallback if ONNX environment is initializing
   let aiHits = 0;
   for (const marker of AI_MARKERS) {
     if (marker.test(text)) aiHits++;
@@ -95,14 +95,30 @@ async function evaluateNoul(state: string, question: LayaNoulQuestion): Promise<
     if (anchor.test(text)) empiricalHits++;
   }
 
-  let rawProb = 0.04;
-  if (aiHits > 0) {
-    rawProb = 0.45 + Math.min(0.50, (aiHits * 0.22) - (empiricalHits * 0.15));
-  } else if (empiricalHits > 1) {
-    rawProb = 0.01;
+  let finalProb: number;
+  if (neuralProb !== null) {
+    if (aiHits > 0) {
+      // Stylistic marker boost: ensure formulaic clichés are properly flagged
+      const markerFloor = 0.45 + Math.min(0.50, (aiHits * 0.20) - (empiricalHits * 0.20));
+      finalProb = Math.max(neuralProb, markerFloor);
+    } else if (empiricalHits > 0) {
+      // Empirical anchor dampening: rigorous statistics guarantee human/clean classification
+      finalProb = Math.min(neuralProb, Math.max(0.005, neuralProb * 0.5));
+    } else {
+      finalProb = neuralProb;
+    }
+  } else {
+    // Fast deterministic fallback if ONNX environment is initializing
+    let rawProb = 0.04;
+    if (aiHits > 0) {
+      rawProb = 0.45 + Math.min(0.50, (aiHits * 0.22) - (empiricalHits * 0.15));
+    } else if (empiricalHits > 1) {
+      rawProb = 0.01;
+    }
+    finalProb = rawProb;
   }
 
-  const probability = Number(Math.max(0.01, Math.min(0.99, rawProb)).toFixed(4));
+  const probability = Number(Math.max(0.005, Math.min(0.99, finalProb)).toFixed(4));
   return { probability };
 }
 
