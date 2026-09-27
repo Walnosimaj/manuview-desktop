@@ -285,7 +285,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
                   <button
                     type="button"
                     onClick={() => onSelectView("personas")}
-                    className="liquid-glass-btn-secondary rounded-full px-4 py-2.5 text-neutral-100 text-xs font-semibold transition cursor-pointer flex items-center gap-2"
+                    className="rounded-full px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 hover:border-white/35 backdrop-blur-md shadow-xs transition-all cursor-pointer flex items-center gap-2 active:scale-95"
                   >
                     <ChevronRight className="w-3.5 h-3.5" />
                     <span>Triage Rationale</span>
@@ -297,7 +297,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
                     <button
                       type="button"
                       onClick={onNewScan}
-                      className="liquid-glass-btn-secondary rounded-full px-4 py-2.5 text-neutral-100 text-xs font-semibold transition cursor-pointer flex items-center gap-2"
+                      className="rounded-full px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 hover:border-white/35 backdrop-blur-md shadow-xs transition-all cursor-pointer flex items-center gap-2 active:scale-95"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Scan Again</span>
