@@ -1598,30 +1598,6 @@ export async function fetchAvailableModels(
         })
       );
     } else if (provider === "laya" || provider === "typesafe") {
-      try {
-        const { listTypeSafeModels } = await import("./typesafe");
-        const live = await listTypeSafeModels(apiKey);
-        if (Array.isArray(live) && live.length > 0) {
-          const mapped: AvailableModel[] = live.map((m) => {
-            const existing = defaultList.find((d) => d.id === m.name);
-            return {
-              id: m.name,
-              name: existing?.name || m.name,
-              description: existing?.description || m.description || "Laya On-Device Decision Model",
-              tag: existing?.tag || (m.name.includes("laya") ? "✨ Recommended" : undefined),
-              recommended: existing?.recommended || m.name === "convaiinnovations/laya",
-              isLive: true,
-            };
-          });
-          // Keep curated entries the API omitted
-          for (const d of defaultList) {
-            if (!mapped.some((x) => x.id === d.id)) mapped.push(d);
-          }
-          return mapped.sort((a, b) => (b.recommended ? 1 : 0) - (a.recommended ? 1 : 0));
-        }
-      } catch (tsErr) {
-        if (options?.throwOnError) throw tsErr;
-      }
       return defaultList;
     }
   } catch (err: any) {

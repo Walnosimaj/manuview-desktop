@@ -20,7 +20,7 @@ export interface LayaModelInfo {
 }
 
 export const LAYA_MODEL: LayaModelInfo = {
-  id: "laya-system1-v2",
+  id: "laya-system1-int8",
   name: "Laya System 1 v2 Decision Model",
   sizeMB: 23,
   architecture: "ModernBERT-large",
