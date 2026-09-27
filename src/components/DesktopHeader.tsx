@@ -417,9 +417,9 @@ export function DesktopHeader({
                 ref={isActive ? activeTabRef : undefined}
                 onClick={() => onSelectTab(tab.id)}
                 title={tab.title}
-                className={`group flex items-center gap-2 h-[38px] px-3 rounded-lg text-xs transition cursor-pointer max-w-[210px] min-w-[120px] shrink-0 ${
+                className={`group flex items-center gap-2 h-[34px] px-3.5 rounded-full text-xs transition-all duration-200 cursor-pointer max-w-[210px] min-w-[120px] shrink-0 ${
                   isActive
-                    ? "liquid-glass-tab-active text-[#111827] dark:text-[#F8FAFC] font-semibold"
+                    ? "liquid-glass-tab-active text-[#111827] dark:text-[#F8FAFC] font-semibold shadow-xs"
                     : "bg-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] border border-transparent"
                 }`}
               >
@@ -429,7 +429,7 @@ export function DesktopHeader({
                   type="button"
                   title="Close tab"
                   onClick={(e) => onCloseTab(tab.id, e)}
-                  className={`p-0.5 rounded-md hover:bg-black/[0.08] dark:hover:bg-white/[0.14] text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-200 transition opacity-0 group-hover:opacity-100 ${
+                  className={`p-0.5 rounded-full hover:bg-black/[0.08] dark:hover:bg-white/[0.14] text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-200 transition opacity-0 group-hover:opacity-100 ${
                     isActive ? "opacity-70" : ""
                   }`}
                 >
@@ -463,10 +463,10 @@ export function DesktopHeader({
             onClick={() => setServicesDropdownOpen((prev) => !prev)}
             title="Manuscript Intelligence Services"
             aria-label="Manuscript Intelligence Services"
-            className={`w-8 h-8 flex items-center justify-center rounded-lg border border-black/10 dark:border-white/15 transition cursor-pointer active:scale-95 ${
+            className={`w-8 h-8 flex items-center justify-center rounded-full transition cursor-pointer active:scale-95 ${
               servicesDropdownOpen
-                ? "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border-blue-400/40"
-                : "text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5"
+                ? "liquid-glass-tab-active text-blue-600 dark:text-blue-400 border border-blue-400/40 shadow-xs"
+                : "liquid-glass-btn-secondary text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
             }`}
           >
             <LayoutGrid className="w-4 h-4" />
@@ -575,17 +575,17 @@ export function DesktopHeader({
         {/* Download for OS Split Button (Web Mode Only - exact match with screenshot) */}
         {!isDesktopApp() && (
           <div className="relative inline-flex items-center" ref={downloadDropdownRef}>
-            <div className="inline-flex items-center h-8 rounded-lg bg-blue-600/80 hover:bg-blue-600 text-white shadow-xs transition-all duration-200 overflow-hidden">
+            <div className="inline-flex items-center h-8 rounded-full liquid-glass-btn-primary text-white shadow-md transition-all duration-200 overflow-hidden">
               <button
                 type="button"
                 data-no-drag
                 onClick={() => setDownloadDropdownOpen((prev) => !prev)}
-                className="inline-flex items-center h-full gap-1.5 px-3 font-semibold text-xs cursor-pointer hover:bg-blue-700/40 transition active:scale-[0.98]"
+                className="inline-flex items-center h-full gap-1.5 px-3.5 font-semibold text-xs cursor-pointer hover:bg-white/10 transition active:scale-[0.98]"
                 title={`Download ManuView for ${selectedPlatform.label} (Coming Soon)`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-white" />
                 <span>Download for {selectedPlatform.label}</span>
-                <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-white/20 text-white leading-none">
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-white/20 text-white leading-none">
                   Coming Soon
                 </span>
               </button>
@@ -597,7 +597,7 @@ export function DesktopHeader({
                   setDownloadDropdownOpen((prev) => !prev);
                 }}
                 aria-label="Other operating system downloads"
-                className="h-full px-2 border-l border-white/20 hover:bg-blue-700/50 cursor-pointer transition flex items-center justify-center"
+                className="h-full px-2.5 border-l border-white/20 hover:bg-white/10 cursor-pointer transition flex items-center justify-center"
                 title="Choose other operating system (MacOS Intel, Windows, Linux)"
               >
                 <ChevronDown

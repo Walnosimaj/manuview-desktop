@@ -786,7 +786,7 @@ export function DesktopDashboard({
           type="button"
           onClick={() => setIsExportOpen((prev) => !prev)}
           disabled={activeExportFormat !== null}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs cursor-pointer disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold liquid-glass-btn-primary transition cursor-pointer disabled:opacity-50"
           title="Export diagnostic report in multiple academic formats"
           aria-expanded={isExportOpen}
         >
@@ -800,12 +800,12 @@ export function DesktopDashboard({
         </button>
 
         {isExportOpen && (
-          <div className="absolute right-0 mt-1.5 w-52 rounded-2xl bg-white dark:bg-[#161F30] border border-black/10 dark:border-white/10 shadow-xl p-1.5 z-50 animate-fade-in text-xs">
+          <div className="absolute right-0 mt-2 w-52 rounded-2xl liquid-glass-modal border border-white/20 dark:border-white/10 shadow-2xl p-1.5 z-50 animate-fade-in text-xs backdrop-blur-2xl">
             <button
               type="button"
               disabled={activeExportFormat !== null}
               onClick={(e) => handleExportFormat("word", e)}
-              className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 rounded-lg"
+              className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 rounded-xl transition"
             >
               <FileText className="w-3.5 h-3.5 text-blue-500 shrink-0" />
               <span>{activeExportFormat === "word" ? "Exporting Word..." : "Word Document (.doc)"}</span>
@@ -814,17 +814,17 @@ export function DesktopDashboard({
               type="button"
               disabled={activeExportFormat !== null}
               onClick={(e) => handleExportFormat("html", e)}
-              className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 rounded-lg"
+              className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 rounded-xl transition"
             >
               <Globe className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
               <span>{activeExportFormat === "html" ? "Exporting HTML..." : "Interactive HTML (.html)"}</span>
             </button>
-            <div className="my-1 border-t border-neutral-100 dark:border-neutral-800" />
+            <div className="my-1 border-t border-black/5 dark:border-white/5" />
             <button
               type="button"
               disabled={activeExportFormat !== null}
               onClick={(e) => handleExportFormat("pdf", e)}
-              className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 rounded-lg"
+              className="w-full text-left px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 rounded-xl transition"
             >
               <Printer className="w-3.5 h-3.5 text-rose-500 shrink-0" />
               <span>{activeExportFormat === "pdf" ? "Exporting PDF..." : "PDF Document (.pdf)"}</span>
@@ -838,7 +838,7 @@ export function DesktopDashboard({
           type="button"
           onClick={onDeleteArticle}
           title="Delete manuscript project"
-          className="p-1.5 rounded-lg text-neutral-400 dark:text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-neutral-200/60 dark:border-[#334155] hover:border-rose-200 transition cursor-pointer"
+          className="p-2 rounded-full text-neutral-500 dark:text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400 liquid-glass-btn-secondary transition cursor-pointer"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -855,15 +855,15 @@ export function DesktopDashboard({
       {!isIneligible && (
         <div className="sticky top-0 z-40 px-6 sm:px-10 py-3 transition-colors pointer-events-none">
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 pointer-events-auto">
-            {/* Tab Navigation (Pill container) */}
-            <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-white/80 dark:bg-[#161F30]/80 border border-black/[0.06] dark:border-white/[0.08] backdrop-blur-md overflow-x-auto no-scrollbar shadow-xs">
+            {/* Tab Navigation (Liquid Glass Pill container) */}
+            <div className="flex items-center gap-1.5 p-1.5 rounded-full liquid-glass-card border border-black/[0.06] dark:border-white/[0.08] shadow-md overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => onSelectView("overview")}
-                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs transition-all cursor-pointer shrink-0 ${
                   activeView === "overview"
-                    ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
-                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+                    ? "liquid-glass-tab-active text-blue-600 dark:text-blue-400 font-bold shadow-xs"
+                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] font-semibold"
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5" />
@@ -872,10 +872,10 @@ export function DesktopDashboard({
               <button
                 type="button"
                 onClick={() => onSelectView("personas")}
-                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs transition-all cursor-pointer shrink-0 ${
                   activeView === "personas"
-                    ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
-                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+                    ? "liquid-glass-tab-active text-blue-600 dark:text-blue-400 font-bold shadow-xs"
+                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] font-semibold"
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
@@ -884,10 +884,10 @@ export function DesktopDashboard({
               <button
                 type="button"
                 onClick={() => onSelectView("dimensions")}
-                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs transition-all cursor-pointer shrink-0 ${
                   activeView === "dimensions"
-                    ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
-                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+                    ? "liquid-glass-tab-active text-blue-600 dark:text-blue-400 font-bold shadow-xs"
+                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] font-semibold"
                 }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
@@ -896,10 +896,10 @@ export function DesktopDashboard({
               <button
                 type="button"
                 onClick={() => onSelectView("issues")}
-                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs transition-all cursor-pointer shrink-0 ${
                   activeView === "issues"
-                    ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
-                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+                    ? "liquid-glass-tab-active text-blue-600 dark:text-blue-400 font-bold shadow-xs"
+                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] font-semibold"
                 }`}
               >
                 <AlertCircle className="w-3.5 h-3.5" />
@@ -908,10 +908,10 @@ export function DesktopDashboard({
               <button
                 type="button"
                 onClick={() => onSelectView("journals")}
-                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs transition-all cursor-pointer shrink-0 ${
                   activeView === "journals" || activeView === "recommendations"
-                    ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
-                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+                    ? "liquid-glass-tab-active text-blue-600 dark:text-blue-400 font-bold shadow-xs"
+                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] font-semibold"
                 }`}
               >
                 <Globe className="w-3.5 h-3.5" />
@@ -920,10 +920,10 @@ export function DesktopDashboard({
               <button
                 type="button"
                 onClick={() => onSelectView("citations")}
-                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs transition-all cursor-pointer shrink-0 ${
                   activeView === "citations"
-                    ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs border border-blue-100 dark:border-blue-900/50"
-                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40"
+                    ? "liquid-glass-tab-active text-blue-600 dark:text-blue-400 font-bold shadow-xs"
+                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] font-semibold"
                 }`}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />

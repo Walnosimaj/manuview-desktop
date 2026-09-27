@@ -128,8 +128,8 @@ export function SidebarCollapsedView({
           </button>
 
           {/* Submenu popover on hover */}
-          <div className="absolute left-full top-0 ml-2 w-64 bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#1F2937] rounded-xl shadow-xl p-2.5 z-50 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 before:absolute before:-left-3 before:top-0 before:bottom-0 before:w-3 before:content-['']">
-            <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-[#E5E7EB] dark:border-[#1F2937]">
+          <div className="absolute left-full top-0 ml-2 w-64 liquid-glass-modal border border-black/10 dark:border-white/10 rounded-2xl shadow-2xl p-2.5 z-50 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 backdrop-blur-2xl before:absolute before:-left-3 before:top-0 before:bottom-0 before:w-3 before:content-['']">
+            <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-black/[0.06] dark:border-white/[0.08]">
               <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">
                 Articles ({papers.length})
               </span>
@@ -336,10 +336,10 @@ export function SidebarCollapsedView({
               onClick={onOpenLocalModel}
               disabled={isScanning}
               title={isScanning ? "Model switching is disabled during an active scan" : "Local On-Device AI (WebGPU SLM)"}
-              className={`w-10 h-10 rounded-full border transition shadow-2xs flex items-center justify-center ${
+              className={`w-10 h-10 rounded-full border transition liquid-glass-btn-secondary flex items-center justify-center ${
                 isScanning
-                  ? "border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 text-neutral-400 cursor-not-allowed opacity-50"
-                  : "border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 cursor-pointer active:scale-95"
+                  ? "border-neutral-200 dark:border-neutral-800 text-neutral-400 cursor-not-allowed opacity-50"
+                  : "border-purple-500/20 text-purple-600 dark:text-purple-400 cursor-pointer active:scale-95"
               }`}
             >
               <Cpu className="w-4 h-4" />
@@ -362,12 +362,12 @@ export function SidebarCollapsedView({
                 ? "Connecting to AI..."
                 : "Connect AI - Provider Settings"
             }
-            className={`w-10 h-10 rounded-full border transition shadow-2xs flex items-center justify-center cursor-pointer relative ${
+            className={`w-10 h-10 rounded-full border transition liquid-glass-btn-secondary flex items-center justify-center cursor-pointer relative ${
               connectionStatus === "connected"
-                ? "border-[#86efac] dark:border-[#065f46] bg-[#f0fdf4] dark:bg-[#064e3b]/30 text-[#065f46] dark:text-[#34d399] hover:bg-[#dcfce7] dark:hover:bg-[#064e3b]/50 hover:border-[#4ade80]"
+                ? "border-[#86efac] dark:border-[#065f46] text-[#065f46] dark:text-[#34d399]"
                 : connectionStatus === "connecting"
-                ? "border-[#fde68a] dark:border-[#78350f] bg-[#fffbeb] dark:bg-[#78350f]/30 text-[#92400e] dark:text-[#fbbf24] hover:bg-[#fef3c7] hover:border-[#fcd34d]"
-                : "border-[#fecaca] dark:border-[#7f1d1d] bg-[#fef2f2] dark:bg-[#7f1d1d]/30 text-[#991b1b] dark:text-[#f87171] hover:bg-[#fee2e2] hover:border-[#fca5a5]"
+                ? "border-[#fde68a] dark:border-[#78350f] text-[#92400e] dark:text-[#fbbf24]"
+                : "border-[#fecaca] dark:border-[#7f1d1d] text-[#991b1b] dark:text-[#f87171]"
             }`}
           >
             <span
