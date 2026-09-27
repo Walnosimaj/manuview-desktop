@@ -15,10 +15,17 @@ import {
   Tag,
   ArrowRight,
   RotateCw,
+  Cpu,
 } from "lucide-react";
 import { extractTextFromFile } from "@/lib/parser";
 import { getSavedClientConfig } from "@/lib/llm";
 import { LAYA_MODEL } from "@/lib/laya/laya-service";
+import {
+  LAYA_MODEL_VARIANTS,
+  getSelectedLayaModelVariant,
+  setSelectedLayaModelVariant,
+  LayaModelVariant,
+} from "@/lib/laya/laya-model-registry";
 import {
   runLayaScan,
   type LayaScanResult,
@@ -34,6 +41,9 @@ interface Props {
 }
 
 export function DesktopLayaScanView({ onOpenSettings }: Props) {
+  const [selectedVariant, setSelectedVariant] = useState<LayaModelVariant>(() =>
+    getSelectedLayaModelVariant()
+  );
   const [text, setText] = useState("");
   const [targetJournal, setTargetJournal] = useState("");
   const [targetJournalError, setTargetJournalError] = useState(false);
@@ -47,12 +57,10 @@ export function DesktopLayaScanView({ onOpenSettings }: Props) {
 
   const { startScan } = useScanManager();
 
-  const model = useMemo(() => {
-    const saved = getSavedClientConfig();
-    return (saved?.provider === "laya" || saved?.provider === "typesafe") && saved.model
-      ? saved.model
-      : LAYA_MODEL.id;
-  }, []);
+  const handleSelectVariant = (variantId: LayaModelVariant["id"]) => {
+    setSelectedLayaModelVariant(variantId);
+    setSelectedVariant(getSelectedLayaModelVariant());
+  };
 
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
 
@@ -92,7 +100,7 @@ export function DesktopLayaScanView({ onOpenSettings }: Props) {
 
       setLoadingStep("Running Fast Scan parallel evaluation battery...");
       const scan = await runLayaScan(text, {
-        model,
+        model: selectedVariant.id,
         targetJournal: targetJournal.trim() || undefined,
         journalScope,
         filename: fileName || undefined,
@@ -173,13 +181,43 @@ export function DesktopLayaScanView({ onOpenSettings }: Props) {
               <Sparkles className="w-6 h-6" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A] dark:text-white">
-                  Fast Scan
-                </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
-                  Laya Decision Model (On-Device)
-                </span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A] dark:text-white">
+                    Fast Scan
+                  </h1>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                    Laya Decision Model (On-Device)
+                  </span>
+                </div>
+
+                {/* Model Selector: INT8 vs FP32 */}
+                <div className="flex items-center gap-1.5 bg-black/[0.04] dark:bg-white/[0.06] p-1 rounded-xl border border-black/[0.06] dark:border-white/[0.08]">
+                  <span className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 pl-2 pr-1 flex items-center gap-1">
+                    <Cpu className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Model:</span>
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {LAYA_MODEL_VARIANTS.map((variant) => {
+                      const isSelected = selectedVariant.id === variant.id;
+                      return (
+                        <button
+                          key={variant.id}
+                          type="button"
+                          onClick={() => handleSelectVariant(variant.id)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
+                            isSelected
+                              ? "bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-xs border border-blue-500/30 font-semibold"
+                              : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                          }`}
+                        >
+                          <span>{variant.id === "laya-system1-int8" ? "INT8 Quantized" : "FP32 Full"}</span>
+                          <span className="text-[10px] opacity-75 font-mono">({variant.size})</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
               <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
                 Objective, typed document diagnostics powered by Laya (ModernBERT-large, 421M params). Evaluates 27 checks in parallel across screening, methodology reproducibility, statistical reporting, and journal scope alignment with calibrated confidence — 100% on-device with zero external API calls.
@@ -272,7 +310,7 @@ export function DesktopLayaScanView({ onOpenSettings }: Props) {
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
             <span className="text-xs text-neutral-400">
-              {wordCount.toLocaleString()} words • Model: {model}
+              {wordCount.toLocaleString()} words • Model: {selectedVariant.name}
             </span>
 
             <button
