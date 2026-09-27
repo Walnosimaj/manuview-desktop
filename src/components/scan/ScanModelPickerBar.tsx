@@ -63,7 +63,7 @@ export function ScanModelPickerBar({
   const handleSwitchToFreeTier = () => {
     const freeConfig = {
       provider: "laya",
-      model: "convaiinnovations/laya",
+      model: "laya-system1-int8",
       baseUrl: "local://laya",
     };
     localStorage.setItem("manuview_provider_config", JSON.stringify(freeConfig));
