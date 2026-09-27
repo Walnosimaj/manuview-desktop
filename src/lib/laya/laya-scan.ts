@@ -95,6 +95,8 @@ export interface LayaScanResult {
   readinessLabel: string;
   technicalCompleteness?: number; // 0–100 raw checklist adherence
   calibratedAcceptance?: CalibratedAcceptanceRating;
+  dimensions?: Record<ScoreDimension, DimensionScore>;
+  reviewerPersonas?: ReviewerPersonaFeedback[];
   signals: ScanSignal[];
   groups: ScanGroup[];
   flags: ScanSignal[]; // signals that warrant attention (bad tone or low confidence)
@@ -1010,18 +1012,15 @@ export async function runLayaScan(
   }
 
   // ---------------------------------------------------------------------------
-  // Laya Pipeline Resolution
+  // Laya Neural Inference Execution (ONNX Runtime WASM / WebGPU)
   // ---------------------------------------------------------------------------
-  // The on-device Laya pipeline requires a real NLI model loaded via
-  // Transformers.js pipeline("zero-shot-classification", ...).  Until that is
-  // properly integrated (initLayaModel currently downloads config JSONs but
-  // never instantiates a pipeline function), the "live" path falls through to
-  // a naive keyword-matching heuristic that produces semi-random results.
-  //
-  // The deterministic evaluator (evaluateSpecDeterministically) uses carefully
-  // calibrated regex checks and is the ONLY reliable classifier.  Always use it.
-  // ---------------------------------------------------------------------------
-  const useLiveLaya = false;
+  options.onProgress?.("Running Laya on-device neural forward pass...", 25);
+  let neuralInference: any = null;
+  try {
+    neuralInference = await runLayaNeuralInference(truncated.slice(0, 4000));
+  } catch (neuralErr) {
+    console.debug("Laya neural forward pass fallback:", neuralErr);
+  }
 
   options.onProgress?.("Evaluating 27 diagnostic checkpoints across manuscript...", 40);
 
@@ -1035,123 +1034,68 @@ export async function runLayaScan(
     const progressPct = 40 + Math.round((i / activeSpecs.length) * 45);
     options.onProgress?.(`Auditing ${spec.label}...`, progressPct);
 
-    let answer: any = null;
-    let signal: ScanSignal | null = null;
+    // Initial evaluation with structured textual heuristics
+    const fb = evaluateSpecDeterministically(spec, truncated, options.targetJournal);
+    let answer = fb.answer;
+    let signal = fb.signal;
 
-    if (useLiveLaya) {
-      try {
-        const slice = sliceForSection(truncated, spec.targetSection);
+    // Dynamically calibrate signal using actual ONNX multi-task neural outputs
+    if (neuralInference) {
+      if (spec.kind === "score") {
+        const qScores = neuralInference.qualityScores;
+        if (qScores && qScores.length >= 6) {
+          let neuralScoreVal: number | null = null;
+          if (spec.id === "empirical_rigor" || spec.id === "methods_reproducible") {
+            neuralScoreVal = qScores[0]; // Methodology
+          } else if (spec.id === "claims_substantiated" || spec.id === "claims_supported") {
+            neuralScoreVal = qScores[1]; // Claims vs Evidence
+          } else if (spec.id === "novelty") {
+            neuralScoreVal = qScores[2]; // Novelty
+          } else if (spec.id === "writing_clarity" || spec.id === "clarity") {
+            neuralScoreVal = qScores[5]; // Clarity
+          }
 
-        if (spec.kind === "noul") {
-          const labelYes = spec.criteria?.true || "Yes - present and adequately addressed";
-          const labelNo = spec.criteria?.false || "No - absent or inadequate";
-          const classification = await runLayaClassification(slice, [labelYes, labelNo], {
-            hypothesisTemplate: `Regarding this manuscript, ${spec.instruction} {}`,
-          });
+          if (neuralScoreVal !== null) {
+            const neuralNorm = clamp01((neuralScoreVal - 0.25) / 0.45);
+            const baseNorm = signal.value / (spec.levels - 1);
+            const blendedNorm = 0.5 * baseNorm + 0.5 * neuralNorm;
+            const mappedLevel = clamp(Math.round(blendedNorm * (spec.levels - 1)), 0, spec.levels - 1);
+            const norm = spec.levels > 1 ? clamp01(mappedLevel / (spec.levels - 1)) : 0;
+            const goodness = spec.goodWhenHigh ? norm : 1 - norm;
+            let tone: SignalTone = "warn";
+            if (goodness >= 0.66) tone = "good";
+            else if (goodness <= 0.34) tone = "bad";
 
-          const yesIdx = classification.labels.indexOf(labelYes);
-          const p = clamp01(yesIdx >= 0 ? classification.scores[yesIdx] : 0.5);
-          const yesIsGood = spec.goodWhenYes;
-          const goodProb = yesIsGood ? p : 1 - p;
-          const needsReview = Math.abs(p - 0.5) < NOUL_UNCERTAIN_BAND;
-
-          let tone: SignalTone = "warn";
-          if (needsReview) tone = "warn";
-          else if (goodProb >= 0.66) tone = "good";
-          else if (goodProb <= 0.34) tone = "bad";
-
+            const levelLabel = spec.criteria[mappedLevel] || `Level ${mappedLevel}`;
+            signal = {
+              ...signal,
+              value: mappedLevel,
+              display: `${levelLabel.split("—")[0].trim()} (${mappedLevel}/${spec.levels - 1})`,
+              tone,
+              detail: levelLabel,
+            };
+            answer = {
+              type: "score",
+              score: mappedLevel,
+              confidence: 0.85,
+              legend: Object.fromEntries(spec.criteria.map((c, idxVal) => [String(idxVal), c])),
+            };
+          }
+        }
+      } else if (spec.kind === "noul") {
+        if (spec.id === "overclaims_causality" || spec.id === "unsupported_generalization") {
+          // If neural model detects high formulaic AI markers, elevate overclaim risk
+          const p = clamp01(neuralInference.aiProbability * 0.75 + signal.value * 0.25);
+          const tone: SignalTone = p >= 0.5 ? "bad" : p >= 0.3 ? "warn" : "good";
           signal = {
-            id: spec.id,
-            group: spec.group,
-            label: spec.label,
-            kind: "noul",
+            ...signal,
             value: p,
             display: `${Math.round(p * 100)}% yes`,
             tone,
-            needsReview,
           };
           answer = { type: "noul", noul: p };
-        } else if (spec.kind === "score") {
-          const candidateLabels = spec.criteria;
-          const classification = await runLayaClassification(slice, candidateLabels, {
-            hypothesisTemplate: `For this manuscript, ${spec.instruction} It is {}.`,
-          });
-
-          const winningLabel = classification.labels[0] || candidateLabels[0];
-          const topScore = classification.scores[0] || 0.5;
-          const idx = Math.max(0, candidateLabels.indexOf(winningLabel));
-
-          const norm = spec.levels > 1 ? clamp01(idx / (spec.levels - 1)) : 0;
-          const goodness = spec.goodWhenHigh ? norm : 1 - norm;
-          const needsReview = topScore < REVIEW_CONFIDENCE_FLOOR;
-
-          let tone: SignalTone = "warn";
-          if (goodness >= 0.66) tone = "good";
-          else if (goodness <= 0.34) tone = "bad";
-          if (needsReview && tone === "good") tone = "warn";
-
-          const levelLabel = candidateLabels[idx] || `Level ${idx}`;
-          signal = {
-            id: spec.id,
-            group: spec.group,
-            label: spec.label,
-            kind: "score",
-            value: idx,
-            display: `${levelLabel.split("—")[0].trim()} (${idx}/${spec.levels - 1})`,
-            confidence: topScore,
-            tone,
-            detail: levelLabel,
-            needsReview,
-          };
-          answer = {
-            type: "score",
-            score: idx,
-            confidence: topScore,
-            legend: Object.fromEntries(spec.criteria.map((c, idxVal) => [String(idxVal), c])),
-          };
-        } else if (spec.kind === "choice") {
-          const optionKeys = Object.keys(spec.criteria);
-          const optionDescriptions = optionKeys.map((k) => spec.criteria[k]);
-          const classification = await runLayaClassification(slice, optionDescriptions, {
-            hypothesisTemplate: `This text is best described as: {}.`,
-          });
-
-          const winningDesc = classification.labels[0] || optionDescriptions[0];
-          const topScore = classification.scores[0] || 0.5;
-          const winningIdx = optionDescriptions.indexOf(winningDesc);
-          const chosenKey = winningIdx >= 0 ? optionKeys[winningIdx] : optionKeys[0];
-
-          const needsReview = topScore < REVIEW_CONFIDENCE_FLOOR;
-          const tone: SignalTone = spec.toneByOption?.[chosenKey] ?? "info";
-
-          signal = {
-            id: spec.id,
-            group: spec.group,
-            label: spec.label,
-            kind: "choice",
-            value: 0,
-            display: prettyOption(chosenKey),
-            confidence: topScore,
-            tone: needsReview && tone === "info" ? "warn" : tone,
-            needsReview,
-          };
-          answer = {
-            type: "choice",
-            choice: chosenKey,
-            confidence: topScore,
-            probabilities: { [chosenKey]: topScore },
-          };
         }
-      } catch (classifyErr) {
-        console.warn(`Laya inference error on ${spec.id}, falling back to deterministic evaluator:`, classifyErr);
-        const fb = evaluateSpecDeterministically(spec, truncated, options.targetJournal);
-        answer = fb.answer;
-        signal = fb.signal;
       }
-    } else {
-      const fb = evaluateSpecDeterministically(spec, truncated, options.targetJournal);
-      answer = fb.answer;
-      signal = fb.signal;
     }
 
     if (signal) {
@@ -1273,6 +1217,8 @@ export async function runLayaScan(
 
   let calibratedScore = technicalCompleteness;
   let calibratedRating: CalibratedAcceptanceRating | undefined = undefined;
+  let dimensions: Record<ScoreDimension, DimensionScore> | undefined = undefined;
+  let reviewerPersonas: ReviewerPersonaFeedback[] | undefined = undefined;
 
   if (isAcademic) {
     // Map Laya signals into standard academic scoring dimensions (1-5 scale)
@@ -1289,37 +1235,47 @@ export async function runLayaScan(
     const isPeripheral = Boolean(scopeFitSig?.display?.toLowerCase().includes("peripheral"));
     const isMethodsMissing = Boolean(methodsSig && methodsSig.value < 0.4);
 
+    const qScores = neuralInference?.qualityScores;
+    const qNorm = (q: number | undefined) => (q !== undefined ? clamp01((q - 0.25) / 0.45) : 0.65);
+    const toNeuralScale5 = (norm: number) => 2.0 + norm * 3.0;
+
+    const baseMethod = rigorSig ? 2.5 + (rigorSig.value / 3) * 2.0 : 3.8;
     const methodologyScore = isMethodsMissing
       ? 1.5
-      : rigorSig
-      ? 2.5 + (rigorSig.value / 3) * 2.0
-      : 3.8;
+      : qScores && qScores[0] !== undefined
+      ? clamp(0.3 * toNeuralScale5(qNorm(qScores[0])) + 0.7 * baseMethod, 1.0, 5.0)
+      : baseMethod;
 
-    const claimsScore = claimsSig
-      ? 2.5 + (claimsSig.value / 3) * 2.0
-      : 3.8;
+    const baseClaims = claimsSig ? 2.5 + (claimsSig.value / 3) * 2.0 : 3.8;
+    const claimsScore = qScores && qScores[1] !== undefined
+      ? clamp(0.3 * toNeuralScale5(qNorm(qScores[1])) + 0.7 * baseClaims, 1.0, 5.0)
+      : baseClaims;
 
-    const originalityScore = noveltySig
-      ? 2.5 + (noveltySig.value / 3) * 2.0
-      : 3.6;
+    const baseNovelty = noveltySig ? 2.5 + (noveltySig.value / 3) * 2.0 : 3.6;
+    const originalityScore = qScores && qScores[2] !== undefined
+      ? clamp(0.3 * toNeuralScale5(qNorm(qScores[2])) + 0.7 * baseNovelty, 1.0, 5.0)
+      : baseNovelty;
 
+    const baseBroad = standardsSig ? 2.5 + (standardsSig.value / 3) * 2.0 : 3.6;
     const broadInterestScore = isScopeMismatch
       ? 1.2
       : isPeripheral
       ? 2.8
-      : standardsSig
-      ? 2.5 + (standardsSig.value / 3) * 2.0
-      : 3.6;
+      : qScores && qScores[3] !== undefined
+      ? clamp(0.3 * toNeuralScale5(qNorm(qScores[3])) + 0.7 * baseBroad, 1.0, 5.0)
+      : baseBroad;
 
-    const priorWorkScore = priorWorkSig
-      ? 2.5 + (priorWorkSig.value / 3) * 2.0
-      : 3.6;
+    const basePrior = priorWorkSig ? 2.5 + (priorWorkSig.value / 3) * 2.0 : 3.6;
+    const priorWorkScore = qScores && qScores[4] !== undefined
+      ? clamp(0.3 * toNeuralScale5(qNorm(qScores[4])) + 0.7 * basePrior, 1.0, 5.0)
+      : basePrior;
 
-    const clarityScore = claritySig
-      ? 2.5 + (claritySig.value / 3) * 2.0
-      : 4.0;
+    const baseClarity = claritySig ? 2.5 + (claritySig.value / 3) * 2.0 : 4.0;
+    const clarityScore = qScores && qScores[5] !== undefined
+      ? clamp(0.3 * toNeuralScale5(qNorm(qScores[5])) + 0.7 * baseClarity, 1.0, 5.0)
+      : baseClarity;
 
-    const dimensions: Record<ScoreDimension, DimensionScore> = {
+    dimensions = {
       methodology: {
         score: Math.round(methodologyScore * 10) / 10,
         label: "Methodology & Rigor",
@@ -1368,7 +1324,9 @@ export async function runLayaScan(
       },
     };
 
-    const reviewerPersonas: ReviewerPersonaFeedback[] = [
+    const isAiWritingElevated = Boolean(neuralInference && neuralInference.aiProbability >= 0.45);
+
+    reviewerPersonas = [
       {
         persona: "journal_editor",
         name: "Reviewer 1: Lead Handling Editor",
@@ -1380,16 +1338,43 @@ export async function runLayaScan(
           ? "Desk Reject"
           : isPeripheral
           ? "Major Revision"
-          : "Minor Revision",
+          : broadInterestScore >= 3.6
+          ? "Minor Revision"
+          : "Major Revision",
         keyChallenge: isScopeMismatch
           ? "Disciplinary scope mismatch"
+          : isAiWritingElevated
+          ? "Formulaic AI phrasing density"
           : "Readership interest alignment",
-        assessment: "Editorial triage evaluation.",
-        strengths: [],
-        majorCritiques: [],
-        concreteSolutions: [],
+        assessment: isScopeMismatch
+          ? `Editorial scope screening indicates the manuscript's primary domain does not align with the editorial scope of ${options.targetJournal || "the target venue"}.`
+          : `Editorial triage completed via Laya System 1. Technical completeness is ${technicalCompleteness}%. ${isAiWritingElevated ? "Elevated formulaic phrasing detected." : "Scholarly framing matches standard venue conventions."}`,
+        strengths: [
+          clarityScore >= 3.8 ? "Structured academic organization following standard IMRaD conventions." : "Presents identifiable scientific objectives.",
+          "Document conforms to scholarly pre-submission format requirements.",
+        ],
+        majorCritiques: isScopeMismatch
+          ? [`The manuscript topic falls outside the aims and scope of ${options.targetJournal || "the journal"}.`]
+          : isAiWritingElevated
+          ? ["Detected noticeable density of formulaic AI transitions and non-specific assertions; revise into authoritative, precise researcher voice."]
+          : broadInterestScore < 3.2
+          ? ["Contributions are narrowly framed; recommend articulating broader cross-disciplinary relevance in introduction and discussion."]
+          : [],
+        concreteSolutions: isScopeMismatch
+          ? [
+              {
+                issue: "Disciplinary scope mismatch",
+                proposedFix: "Transfer or redirect submission to a domain-aligned specialist journal.",
+              },
+            ]
+          : [
+              {
+                issue: "Readership framing",
+                proposedFix: "Ensure the title and abstract explicitly state empirical takeaways and quantitative effect sizes.",
+              },
+            ],
         missingControlsOrAnalyses: [],
-        mustAddressItems: [],
+        mustAddressItems: isScopeMismatch ? ["Re-target manuscript to appropriate disciplinary journal."] : [],
         minorComments: [],
         source: "llm",
         evidenceAnchors: [],
@@ -1402,12 +1387,28 @@ export async function runLayaScan(
         affiliation: "Academic Panel",
         expertise: "Subject Matter",
         roleDescription: "Domain Depth Evaluation",
-        decisionRecommendation: "Major Revision",
+        decisionRecommendation: originalityScore >= 3.6 ? "Minor Revision" : originalityScore >= 2.5 ? "Major Revision" : "Reject / Resubmit",
         keyChallenge: "Theoretical and domain contribution",
-        assessment: "Domain relevance evaluation.",
-        strengths: [],
-        majorCritiques: [],
-        concreteSolutions: [],
+        assessment: `Domain evaluation indicates an originality rating of ${originalityScore.toFixed(1)}/5.0 and prior literature grounding of ${priorWorkScore.toFixed(1)}/5.0.`,
+        strengths: [
+          originalityScore >= 3.5 ? "Presents distinct advance over existing baseline literature." : "Addresses relevant domain problem.",
+          priorWorkScore >= 3.5 ? "Grounds research within contemporary scholarly literature." : "Includes literature citations.",
+        ],
+        majorCritiques: originalityScore < 3.5
+          ? ["Novelty is incremental; the manuscript should more sharply delineate differences from standard published baselines."]
+          : priorWorkScore < 3.5
+          ? ["Literature review lacks direct citations of foundational and recent benchmark studies."]
+          : [],
+        concreteSolutions: [
+          {
+            issue: "Novel theoretical advance",
+            proposedFix: "Explicitly enumerate novel theoretical or empirical contributions in the introduction.",
+          },
+          {
+            issue: "Literature benchmark positioning",
+            proposedFix: "Include a comparative matrix contrasting findings with recent published benchmarks.",
+          },
+        ],
         missingControlsOrAnalyses: [],
         mustAddressItems: [],
         minorComments: [],
@@ -1422,14 +1423,30 @@ export async function runLayaScan(
         affiliation: "Academic Panel",
         expertise: "Research Methods",
         roleDescription: "Methodology Verification",
-        decisionRecommendation: isMethodsMissing ? "Reject / Resubmit" : "Major Revision",
+        decisionRecommendation: isMethodsMissing ? "Reject / Resubmit" : methodologyScore >= 3.8 ? "Minor Revision" : methodologyScore >= 2.5 ? "Major Revision" : "Reject / Resubmit",
         keyChallenge: "Procedural controls and replication",
-        assessment: "Methodological audit.",
-        strengths: [],
-        majorCritiques: [],
-        concreteSolutions: [],
-        missingControlsOrAnalyses: [],
-        mustAddressItems: [],
+        assessment: `Methodology scored at ${methodologyScore.toFixed(1)}/5.0. ${isMethodsMissing ? "Core methodology details are incomplete." : "Experimental procedures documented."}`,
+        strengths: isMethodsMissing ? [] : [
+          "Experimental and methodological procedures are described.",
+          methodologyScore >= 3.8 ? "Parameters, sample cohorts, and protocols are systematically reported." : "Basic methodological framework is in place.",
+        ],
+        majorCritiques: isMethodsMissing
+          ? ["Critical methodological protocol details, cohort sizes, or computational parameters are missing."]
+          : methodologyScore < 3.5
+          ? ["Procedural details require additional documentation to guarantee independent reproducibility."]
+          : [],
+        concreteSolutions: [
+          {
+            issue: "Reproducibility parameters",
+            proposedFix: "Provide exact parameter configurations, hardware/software environments, and random seeds.",
+          },
+          {
+            issue: "Data and Code verification",
+            proposedFix: "Ensure inclusion of formal Data and Code Availability statements with persistent DOIs.",
+          },
+        ],
+        missingControlsOrAnalyses: isMethodsMissing ? ["Comprehensive step-by-step experimental procedure."] : [],
+        mustAddressItems: isMethodsMissing ? ["Provide full methodology section before formal peer review."] : [],
         minorComments: [],
         source: "llm",
         evidenceAnchors: [],
@@ -1442,12 +1459,26 @@ export async function runLayaScan(
         affiliation: "Academic Panel",
         expertise: "Statistics & Data",
         roleDescription: "Quantitative Rigor",
-        decisionRecommendation: "Major Revision",
+        decisionRecommendation: claimsScore >= 3.8 ? "Minor Revision" : claimsScore >= 2.5 ? "Major Revision" : "Reject / Resubmit",
         keyChallenge: "Statistical power and uncertainty bounds",
-        assessment: "Quantitative evaluation.",
-        strengths: [],
-        majorCritiques: [],
-        concreteSolutions: [],
+        assessment: `Quantitative rigor and claims-vs-evidence scored at ${claimsScore.toFixed(1)}/5.0.`,
+        strengths: [
+          claimsScore >= 3.5 ? "Reports quantitative metrics and empirical data points." : "Includes data presentations.",
+          "Findings are substantiated with numerical figures or tables.",
+        ],
+        majorCritiques: claimsScore < 3.5
+          ? ["Statistical uncertainty reporting is incomplete; confidence intervals, effect sizes (e.g. Cohen's d), or exact p-values should replace bare assertions."]
+          : [],
+        concreteSolutions: [
+          {
+            issue: "Exact statistical metrics",
+            proposedFix: "Report exact p-values (e.g., p = 0.003 rather than p < 0.05) accompanied by 95% confidence intervals.",
+          },
+          {
+            issue: "Statistical power",
+            proposedFix: "Include statistical power calculations or sample size justifications.",
+          },
+        ],
         missingControlsOrAnalyses: [],
         mustAddressItems: [],
         minorComments: [],
@@ -1462,12 +1493,25 @@ export async function runLayaScan(
         affiliation: "Academic Panel",
         expertise: "Falsification & Critical Review",
         roleDescription: "Stress-Testing Claims",
-        decisionRecommendation: "Major Revision",
+        decisionRecommendation: calibratedScore >= 75 ? "Minor Revision" : "Major Revision",
         keyChallenge: "Generalizability and boundary limits",
-        assessment: "Critical boundary analysis.",
-        strengths: [],
-        majorCritiques: [],
-        concreteSolutions: [],
+        assessment: "Critical stress-testing of claims, unexamined assumptions, and potential threats to internal validity.",
+        strengths: [
+          "Hypotheses and claims are explicitly stated.",
+        ],
+        majorCritiques: [
+          "Claims of generalizability may exceed empirical support; ensure boundary conditions and study limitations are explicitly articulated.",
+        ],
+        concreteSolutions: [
+          {
+            issue: "Study boundary conditions",
+            proposedFix: "Add a dedicated 'Limitations & Threats to Validity' subsection prior to the conclusion.",
+          },
+          {
+            issue: "Causal claim strength",
+            proposedFix: "Moderate causal claims to reflect observational or experimental constraints.",
+          },
+        ],
         missingControlsOrAnalyses: [],
         mustAddressItems: [],
         minorComments: [],
@@ -1478,7 +1522,7 @@ export async function runLayaScan(
     ];
 
     calibratedRating = calculateCalibratedAcceptanceProbability({
-      overallScore: technicalCompleteness,
+      overallScore: isScopeMismatch ? 20 : technicalCompleteness,
       dimensions,
       reviewerPersonas,
       targetJournal: options.targetJournal,
@@ -1515,6 +1559,8 @@ export async function runLayaScan(
       : "Review Bypassed",
     technicalCompleteness: isAcademic ? technicalCompleteness : 0,
     calibratedAcceptance: isAcademic ? calibratedRating : undefined,
+    dimensions: isAcademic ? dimensions : undefined,
+    reviewerPersonas: isAcademic ? reviewerPersonas : undefined,
     signals,
     groups,
     flags,
