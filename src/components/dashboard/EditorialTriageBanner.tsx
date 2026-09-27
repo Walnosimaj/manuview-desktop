@@ -95,7 +95,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
               <button
                 type="button"
                 onClick={onNewScan}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer shadow-2xs"
+                className="liquid-glass-btn-primary rounded-full inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold transition cursor-pointer shadow-md"
               >
                 <Upload className="w-3.5 h-3.5" />
                 <span>Upload Manuscript</span>
@@ -188,7 +188,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
               <button
                 type="button"
                 onClick={onNewScan}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white transition cursor-pointer shadow-2xs"
+                className="liquid-glass-btn-primary rounded-full inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold transition cursor-pointer shadow-md"
               >
                 <Upload className="w-3.5 h-3.5" />
                 <span>Upload Manuscript</span>
@@ -277,7 +277,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
                   <button
                     type="button"
                     onClick={() => onSelectView("journals")}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-md"
+                    className="liquid-glass-btn-primary rounded-full px-5 py-2.5 text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-lg"
                   >
                     <BookOpen className="w-3.5 h-3.5" />
                     <span>View In-Scope Journals</span>
@@ -285,7 +285,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
                   <button
                     type="button"
                     onClick={() => onSelectView("personas")}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 transition cursor-pointer flex items-center gap-2 backdrop-blur-sm"
+                    className="liquid-glass-btn-secondary rounded-full px-4 py-2.5 text-neutral-100 text-xs font-semibold transition cursor-pointer flex items-center gap-2"
                   >
                     <ChevronRight className="w-3.5 h-3.5" />
                     <span>Triage Rationale</span>
@@ -297,7 +297,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
                     <button
                       type="button"
                       onClick={onNewScan}
-                      className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 transition cursor-pointer flex items-center gap-2 backdrop-blur-sm"
+                      className="liquid-glass-btn-secondary rounded-full px-4 py-2.5 text-neutral-100 text-xs font-semibold transition cursor-pointer flex items-center gap-2"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Scan Again</span>
@@ -306,7 +306,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
                   <button
                     type="button"
                     onClick={handlePrint}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-md"
+                    className="liquid-glass-btn-primary rounded-full px-5 py-2.5 text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-lg"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     <span>Export PDF</span>
@@ -337,7 +337,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
         {/* 5-Card Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Card 1: 6 Scoring Dimensions */}
-          <div className="rounded-2xl p-5 border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/20 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="liquid-glass-card-interactive rounded-2xl p-5 border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/20 shadow-xs flex flex-col justify-between space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -366,7 +366,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
               <button
                 type="button"
                 onClick={() => onSelectView("dimensions")}
-                className="px-3 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-black/10 dark:border-white/10 shadow-2xs transition cursor-pointer"
+                className="liquid-glass-btn-secondary rounded-full px-3.5 py-1 text-xs font-bold text-neutral-800 dark:text-neutral-200 cursor-pointer shadow-xs"
               >
                 Review
               </button>
@@ -375,7 +375,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
 
           {/* Card 2: Editorial Triage */}
           <div
-            className={`rounded-2xl p-5 border shadow-xs flex flex-col justify-between space-y-4 ${
+            className={`liquid-glass-card-interactive rounded-2xl p-5 border shadow-xs flex flex-col justify-between space-y-4 ${
               isEffectiveDeskReject
                 ? "border-rose-200/60 dark:border-rose-900/40 bg-rose-50/50 dark:bg-rose-950/20"
                 : "border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-950/20"
@@ -431,7 +431,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
               <button
                 type="button"
                 onClick={() => onSelectView("personas")}
-                className="px-3 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-black/10 dark:border-white/10 shadow-2xs transition cursor-pointer"
+                className="liquid-glass-btn-secondary rounded-full px-3.5 py-1 text-xs font-bold text-neutral-800 dark:text-neutral-200 cursor-pointer shadow-xs"
               >
                 Review
               </button>
@@ -439,7 +439,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
           </div>
 
           {/* Card 3: Adversarial Reviewers */}
-          <div className="rounded-2xl p-5 border border-purple-200/60 dark:border-purple-900/40 bg-purple-50/50 dark:bg-purple-950/20 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="liquid-glass-card-interactive rounded-2xl p-5 border border-purple-200/60 dark:border-purple-900/40 bg-purple-50/50 dark:bg-purple-950/20 shadow-xs flex flex-col justify-between space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
@@ -468,7 +468,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
               <button
                 type="button"
                 onClick={() => onSelectView("personas")}
-                className="px-3 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-black/10 dark:border-white/10 shadow-2xs transition cursor-pointer"
+                className="liquid-glass-btn-secondary rounded-full px-3.5 py-1 text-xs font-bold text-neutral-800 dark:text-neutral-200 cursor-pointer shadow-xs"
               >
                 Review
               </button>
@@ -476,7 +476,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
           </div>
 
           {/* Card 4: Reference & Citation Integrity */}
-          <div className="rounded-2xl p-5 border border-teal-200/60 dark:border-teal-900/40 bg-teal-50/50 dark:bg-teal-950/20 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="liquid-glass-card-interactive rounded-2xl p-5 border border-teal-200/60 dark:border-teal-900/40 bg-teal-50/50 dark:bg-teal-950/20 shadow-xs flex flex-col justify-between space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
@@ -513,7 +513,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
               <button
                 type="button"
                 onClick={() => onSelectView("citations")}
-                className="px-3 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-black/10 dark:border-white/10 shadow-2xs transition cursor-pointer"
+                className="liquid-glass-btn-secondary rounded-full px-3.5 py-1 text-xs font-bold text-neutral-800 dark:text-neutral-200 cursor-pointer shadow-xs"
               >
                 Review
               </button>
@@ -521,7 +521,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
           </div>
 
           {/* Card 5: Target Journal Fit */}
-          <div className="rounded-2xl p-5 border border-blue-200/60 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/20 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="liquid-glass-card-interactive rounded-2xl p-5 border border-blue-200/60 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/20 shadow-xs flex flex-col justify-between space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
@@ -550,7 +550,7 @@ export const EditorialTriageBanner: React.FC<EditorialTriageBannerProps> = ({
               <button
                 type="button"
                 onClick={() => onSelectView("journals")}
-                className="px-3 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-black/10 dark:border-white/10 shadow-2xs transition cursor-pointer"
+                className="liquid-glass-btn-secondary rounded-full px-3.5 py-1 text-xs font-bold text-neutral-800 dark:text-neutral-200 cursor-pointer shadow-xs"
               >
                 Review
               </button>

@@ -224,9 +224,9 @@ export function SidebarPaperList({
                         }}
                         className={`group/item w-full flex items-center justify-between px-2 py-1.5 rounded-xl text-xs text-left transition cursor-pointer select-none ${
                           isSelected && activeView === "overview" && selectedPaperIds.size === 0
-                            ? "bg-[#E5E7EB] dark:bg-[#1E293B] font-semibold text-[#111827] dark:text-white shadow-2xs"
+                            ? "liquid-glass-tab-active font-semibold text-[#111827] dark:text-white shadow-xs"
                             : isSelected && selectedPaperIds.size === 0
-                            ? "bg-[#F3F4F6] dark:bg-[#161F30] font-medium text-[#111827] dark:text-white"
+                            ? "liquid-glass-card font-medium text-[#111827] dark:text-white"
                             : isSelectedInBatch
                             ? "bg-blue-50/80 dark:bg-blue-950/30 font-medium text-blue-900 dark:text-blue-200"
                             : "hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-neutral-700 dark:text-neutral-300"

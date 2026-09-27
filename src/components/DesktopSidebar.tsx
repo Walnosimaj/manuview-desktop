@@ -302,9 +302,9 @@ export function DesktopSidebar({
           <button
             type="button"
             onClick={onNewReview}
-            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition cursor-pointer text-left ${
+            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-all duration-200 cursor-pointer text-left ${
               !activePaperId
-                ? "bg-white dark:bg-white/10 shadow-xs border border-black/[0.06] dark:border-white/[0.08] font-bold text-[#0F172A] dark:text-white"
+                ? "liquid-glass-tab-active font-bold text-[#0F172A] dark:text-white shadow-xs"
                 : "text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] border border-transparent font-medium"
             }`}
           >
@@ -346,7 +346,7 @@ export function DesktopSidebar({
           <div className="flex items-center gap-2">
             <div
               onClick={onOpenSettings}
-              className="flex-1 p-2.5 rounded-xl bg-white/80 dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08] shadow-2xs flex items-center gap-2.5 cursor-pointer hover:bg-white dark:hover:bg-white/[0.08] transition min-w-0"
+              className="flex-1 p-2.5 rounded-xl liquid-glass-card shadow-xs flex items-center gap-2.5 cursor-pointer hover:scale-[1.01] transition-all duration-200 min-w-0"
               title="AI Engine Status - Click to configure"
             >
               <div className="relative flex items-center justify-center shrink-0">
@@ -388,10 +388,10 @@ export function DesktopSidebar({
                     ? "Model switching is disabled during an active scan"
                     : "Local On-Device AI (WebGPU SLM)"
                 }
-                className={`h-[46px] px-2.5 rounded-xl border border-purple-500/20 bg-purple-500/10 text-purple-700 dark:text-purple-300 transition flex flex-col items-center justify-center gap-0.5 shrink-0 shadow-2xs ${
+                className={`h-[46px] px-2.5 rounded-xl liquid-glass-btn-secondary text-purple-700 dark:text-purple-300 transition-all flex flex-col items-center justify-center gap-0.5 shrink-0 shadow-xs ${
                   isScanning
                     ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-purple-500/20 cursor-pointer active:scale-95"
+                    : "cursor-pointer active:scale-95"
                 }`}
               >
                 <Cpu className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -431,7 +431,7 @@ export function DesktopSidebar({
             </button>
 
             {appearanceOpen && (
-              <div className="absolute bottom-full mb-1.5 left-0 right-0 p-1.5 rounded-xl bg-white dark:bg-[#111827] border border-black/10 dark:border-white/10 shadow-xl z-50 animate-fade-in backdrop-blur-xl space-y-0.5">
+              <div className="absolute bottom-full mb-1.5 left-0 right-0 p-1.5 rounded-2xl liquid-glass-modal shadow-2xl z-50 animate-fade-in backdrop-blur-2xl space-y-0.5 border border-black/10 dark:border-white/10">
                 {[
                   {
                     id: "light",
