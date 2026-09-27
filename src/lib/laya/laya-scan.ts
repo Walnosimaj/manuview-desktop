@@ -31,6 +31,11 @@ import {
   runLayaClassification,
   LAYA_MODEL,
 } from "./laya-service";
+import { runLayaNeuralInference } from "./laya-neural-engine";
+import {
+  getSelectedLayaModelVariant,
+  setSelectedLayaModelVariant,
+} from "./laya-model-registry";
 
 /** Max characters of manuscript text retained for evaluation. */
 const MAX_STATE_CHARS = 48_000;
@@ -898,6 +903,11 @@ export async function runLayaScan(
     throw new Error("No manuscript text to scan. Paste or load a document first.");
   }
 
+  if (options.model === "laya-system1-int8" || options.model === "laya-system1-fp32") {
+    setSelectedLayaModelVariant(options.model);
+  }
+  const currentVariant = getSelectedLayaModelVariant();
+
   options.onProgress?.("Classifying document format & section hierarchy...", 10);
   const heuristicClassification = classifyDocument(text, options.filename);
 
@@ -1480,7 +1490,7 @@ export async function runLayaScan(
   }
 
   const rawResponse: SystemOneResponse = {
-    model: LAYA_MODEL.id,
+    model: currentVariant.name,
     answers: rawAnswers,
     usage: {
       input_tokens: Math.round(truncated.length / 4),
@@ -1491,7 +1501,7 @@ export async function runLayaScan(
   options.onProgress?.("Completed Laya calibrated audit", 100);
 
   return {
-    model: LAYA_MODEL.id,
+    model: currentVariant.name,
     targetJournal: options.targetJournal,
     journalScope: options.journalScope,
     documentType: classification.categoryLabel || docTypeSignal?.display || "Unknown",
