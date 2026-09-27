@@ -769,6 +769,7 @@ function AppWorkspace({
           <DesktopLayaDashboardView
             paper={currentPaper}
             scanResult={currentPaper.layaResult || currentPaper.typesafeResult}
+            fullReport={activeTabId ? fullReportsStore[activeTabId] : null}
             activeView={activeView}
             onSelectView={(view) => setActiveView(view)}
             onOpenSettings={() => setIsSettingsOpen(true)}
