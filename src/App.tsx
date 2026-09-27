@@ -21,6 +21,7 @@ import { DesktopCoverLetterView } from "@/components/services/DesktopCoverLetter
 import { DesktopResponseBuilderView } from "@/components/services/DesktopResponseBuilderView";
 import { DesktopLayaScanView } from "@/components/services/DesktopLayaScanView";
 import { DesktopLayaDashboardView } from "@/components/services/DesktopLayaDashboardView";
+import { DesktopAiDetectionView } from "@/components/services/DesktopAiDetectionView";
 import { DesktopEmptyDashboard } from "@/components/DesktopEmptyDashboard";
 import { DeleteConfirmationModal } from "@/components/DeleteConfirmationModal";
 import { ProviderSettingsModal } from "@/components/ProviderSettingsModal";
@@ -307,6 +308,7 @@ export default function App() {
       "response-builder": { title: "Review Response Builder", shortName: "Response Matrix" },
       "laya-scan": { title: "Fast Scan (Laya)", shortName: "Fast Scan" },
       "typesafe-scan": { title: "Fast Scan (Laya)", shortName: "Fast Scan" },
+      "ai-detection": { title: "AI Phrasing & Disclosures", shortName: "AI Detection" },
     };
 
     const toolInfo = toolMap[normalizedServiceId];
@@ -733,6 +735,9 @@ function AppWorkspace({
     }
     if (activeTabId === "tool-laya-scan" || activeTabId === "tool-typesafe-scan") {
       return <DesktopLayaScanView onOpenSettings={() => setIsSettingsOpen(true)} />;
+    }
+    if (activeTabId === "tool-ai-detection") {
+      return <DesktopAiDetectionView onOpenSettings={() => setIsSettingsOpen(true)} />;
     }
 
     // Article Review Lifecycle: Active in-progress background scan
