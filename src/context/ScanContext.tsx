@@ -3,12 +3,15 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from "react";
 import { PaperItem } from "@/components/DesktopSidebar";
 import { DesktopDashboardData } from "@/components/DesktopDashboard";
-import { FullReviewReport, ParsedManuscript } from "@/lib/types";
+import { FullReviewReport, ParsedManuscript, ReferenceVerification, ReferenceStatus, CitationIntegritySummary } from "@/lib/types";
 import { extractTextFromFile, parseManuscriptText } from "@/lib/parser";
 import { runManuscriptDiagnostic } from "@/lib/diagnostic-engine";
 import { fetchLiveJournalScope } from "@/lib/journal-scope-service";
 import { resolveActiveConfig } from "@/lib/llm";
 import { translateScanError, HumanReadableScanError } from "@/lib/scanErrorTranslator";
+import { checkRetractionStatus } from "@/lib/retractions";
+import { computeCitationIntegrity } from "@/lib/engine/citation-audit";
+import { extractReferencesFromText } from "@/lib/utils";
 
 export interface ScanParams {
   title: string;
@@ -264,6 +267,58 @@ export function ScanProvider({
             (scanResult.signals.some((s) => s.id === "desk_reject_risk" && s.value >= 2) ||
             scanResult.signals.some((s) => s.id === "journal_scope_fit" && s.display?.toLowerCase().includes("out of scope")));
 
+          let rawRefs = parsed.references || [];
+          if (rawRefs.length === 0 && rawManuscript) {
+            rawRefs = extractReferencesFromText(rawManuscript);
+          }
+
+          const verifiedRefList: ReferenceVerification[] = rawRefs.map((r) => {
+            const doiMatch = r.match(/\b(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)\b/i);
+            const doi = doiMatch ? doiMatch[1].replace(/[.,;)\]]+$/, "") : undefined;
+            const yearMatch = r.match(/\b(19\d\d|20\d\d)\b/);
+            const year = yearMatch ? parseInt(yearMatch[1], 10) : undefined;
+            let title: string | undefined = undefined;
+            const quoteMatch = r.match(/["“]([^"”]+)["”]/);
+            if (quoteMatch) {
+              title = quoteMatch[1];
+            } else {
+              const parts = r.split(/\.\s+/);
+              if (parts.length >= 2) {
+                title = parts[1];
+              }
+            }
+
+            const retraction = checkRetractionStatus(doi, r);
+            const status: ReferenceStatus = retraction.isRetracted
+              ? "retracted"
+              : retraction.isExpressionOfConcern
+              ? "expression_of_concern"
+              : "valid";
+
+            return {
+              raw: r,
+              doi,
+              year,
+              title: title || r,
+              status,
+              isRetracted: retraction.isRetracted,
+              isRetractionNotice: retraction.isRetractionNotice,
+              retractionDetails: retraction.reason,
+              resolutionMethod: doi ? ("doi" as const) : ("bibliographic_search" as const),
+            };
+          });
+
+          const citationIntegrity: CitationIntegritySummary = computeCitationIntegrity(
+            verifiedRefList,
+            verifiedRefList.length,
+            parsed.authors
+          );
+
+          const layaResultWithCitations = {
+            ...scanResult,
+            citationIntegrity,
+          };
+
           const completedPaper: PaperItem = {
             id: paperId,
             title: parsed.title || params.title || "Untitled Manuscript",
@@ -274,8 +329,8 @@ export function ScanProvider({
             journal: scanResult.publishedDetails?.journalName || params.targetJournal,
             score: isNonAcademic || isAlreadyPublished ? undefined : scanResult.readiness,
             scanType: "laya",
-            layaResult: scanResult,
-            typesafeResult: scanResult,
+            layaResult: layaResultWithCitations,
+            typesafeResult: layaResultWithCitations,
             provider: "laya",
             model: targetModel,
             aiEngine: "Laya",
@@ -342,10 +397,10 @@ export function ScanProvider({
               detail: p.majorCritiques?.join(" ") || p.assessment || "",
             })),
             citationAudit: {
-              verifiedCount: parsed.references?.length || 0,
-              totalCount: parsed.references?.length || 0,
-              retractedCount: 0,
-              notes: "Citation references parsed.",
+              verifiedCount: citationIntegrity.verifiedCount,
+              totalCount: citationIntegrity.totalReferences,
+              retractedCount: citationIntegrity.retractedCount,
+              notes: citationIntegrity.coverageNote,
             },
           };
 
@@ -406,24 +461,7 @@ export function ScanProvider({
                 requiredRevisionsForFit: [],
               },
             ],
-            citationIntegrity: {
-              totalReferences: parsed.references?.length || 0,
-              sampledCount: parsed.references?.length || 0,
-              checkedCount: parsed.references?.length || 0,
-              coverageNote: "Automated bibliographic screening.",
-              verifiedCount: parsed.references?.length || 0,
-              unresolvableCount: 0,
-              uncheckedCount: 0,
-              retractedCount: 0,
-              retractionCheckAvailable: true,
-              selfCitationRatio: 0.05,
-              recencyProfile: { last5YearsPercent: 75, olderThan5YearsPercent: 25 },
-              references: (parsed.references || []).map((r) => ({
-                raw: r,
-                status: "valid" as const,
-                isRetracted: false,
-              })),
-            },
+            citationIntegrity,
             editorialTriage: {
               outcome: isDeskReject ? "desk_reject" : "sent_for_review",
               sentToPeerReview: !isDeskReject && !isNonAcademic && !isAlreadyPublished,

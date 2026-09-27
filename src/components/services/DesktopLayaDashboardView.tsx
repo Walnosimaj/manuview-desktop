@@ -47,6 +47,8 @@ import type {
   PriorityIssue,
   CitationIntegritySummary,
   JournalRecommendation,
+  ReferenceVerification,
+  ReferenceStatus,
 } from "@/lib/types";
 import { DashboardPersonasSection } from "@/components/dashboard/DashboardPersonasSection";
 import { DashboardDimensionsSection } from "@/components/dashboard/DashboardDimensionsSection";
@@ -55,10 +57,14 @@ import { DashboardJournalsSection } from "@/components/dashboard/DashboardJourna
 import { DashboardCitationsSection } from "@/components/dashboard/DashboardCitationsSection";
 import { findMatchingJournals } from "@/lib/journals";
 import { openJournalWebsite } from "@/lib/journal-scope-service";
+import { computeCitationIntegrity } from "@/lib/engine/citation-audit";
+import { extractReferencesFromText } from "@/lib/utils";
+import { checkRetractionStatus } from "@/lib/retractions";
 
 export interface DesktopLayaDashboardViewProps {
   paper: PaperItem;
   scanResult?: LayaScanResult;
+  fullReport?: FullReviewReport | null;
   activeView?: DesktopActiveView;
   onSelectView?: (view: DesktopActiveView) => void;
   onOpenSettings?: () => void;
@@ -118,6 +124,7 @@ function getScoreTheme(score: number) {
 export function DesktopLayaDashboardView({
   paper,
   scanResult,
+  fullReport,
   activeView,
   onSelectView,
   onOpenSettings,
@@ -253,6 +260,95 @@ export function DesktopLayaDashboardView({
   // Toggle card
   const toggleCard = (key: keyof typeof expandedCards) => {
     setExpandedCards((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Resolve references dynamically from fullReport, result, or raw text
+  const resolvedReferences: ReferenceVerification[] = useMemo(() => {
+    if (fullReport?.citationIntegrity?.references && fullReport.citationIntegrity.references.length > 0) {
+      return fullReport.citationIntegrity.references;
+    }
+    if ((result as any)?.citationIntegrity?.references && (result as any).citationIntegrity.references.length > 0) {
+      return (result as any).citationIntegrity.references;
+    }
+    const rawText = paper.scanParams?.rawText || "";
+    if (rawText) {
+      const extracted = extractReferencesFromText(rawText);
+      if (extracted.length > 0) {
+        return extracted.map((raw) => {
+          const doiMatch = raw.match(/\b(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)\b/i);
+          const doi = doiMatch ? doiMatch[1].replace(/[.,;)\]]+$/, "") : undefined;
+          const yearMatch = raw.match(/\b(19\d\d|20\d\d)\b/);
+          const year = yearMatch ? parseInt(yearMatch[1], 10) : undefined;
+          const quoteMatch = raw.match(/["“]([^"”]+)["”]/);
+          let title: string | undefined = quoteMatch ? quoteMatch[1] : undefined;
+          if (!title) {
+            const parts = raw.split(/\.\s+/);
+            if (parts.length >= 2) title = parts[1];
+          }
+
+          const retraction = checkRetractionStatus(doi, raw);
+          const status: ReferenceStatus = retraction.isRetracted
+            ? "retracted"
+            : retraction.isExpressionOfConcern
+            ? "expression_of_concern"
+            : "valid";
+
+          return {
+            raw,
+            doi,
+            year,
+            title: title || raw,
+            status,
+            isRetracted: retraction.isRetracted,
+            isRetractionNotice: retraction.isRetractionNotice,
+            retractionDetails: retraction.reason,
+            resolutionMethod: doi ? ("doi" as const) : ("bibliographic_search" as const),
+          };
+        });
+      }
+    }
+    return [];
+  }, [fullReport, result, paper.scanParams?.rawText]);
+
+  // Citation integrity state
+  const [activeCitationIntegrity, setActiveCitationIntegrity] = useState<CitationIntegritySummary>(() => {
+    if (fullReport?.citationIntegrity && fullReport.citationIntegrity.references.length > 0) {
+      return fullReport.citationIntegrity;
+    }
+    if ((result as any)?.citationIntegrity && (result as any).citationIntegrity.references.length > 0) {
+      return (result as any).citationIntegrity;
+    }
+    if (resolvedReferences.length > 0) {
+      return computeCitationIntegrity(resolvedReferences, resolvedReferences.length);
+    }
+    return {
+      totalReferences: 0,
+      sampledCount: 0,
+      checkedCount: 0,
+      verifiedCount: 0,
+      unresolvableCount: 0,
+      uncheckedCount: 0,
+      retractedCount: 0,
+      retractionCheckAvailable: true,
+      selfCitationRatio: 0,
+      recencyProfile: { last5YearsPercent: 0, olderThan5YearsPercent: 0 },
+      coverageNote: "No bibliography references detected in manuscript text.",
+      references: [],
+    };
+  });
+
+  useEffect(() => {
+    if (fullReport?.citationIntegrity && fullReport.citationIntegrity.references.length > 0) {
+      setActiveCitationIntegrity(fullReport.citationIntegrity);
+    } else if ((result as any)?.citationIntegrity && (result as any).citationIntegrity.references.length > 0) {
+      setActiveCitationIntegrity((result as any).citationIntegrity);
+    } else if (resolvedReferences.length > 0) {
+      setActiveCitationIntegrity(computeCitationIntegrity(resolvedReferences, resolvedReferences.length));
+    }
+  }, [fullReport?.citationIntegrity, (result as any)?.citationIntegrity, resolvedReferences]);
+
+  const handleUpdateCitationIntegrity = (updated: CitationIntegritySummary) => {
+    setActiveCitationIntegrity(updated);
   };
 
   // Build a synthetic FullReviewReport for export
@@ -536,22 +632,9 @@ export function DesktopLayaDashboardView({
           requiredRevisionsForFit: [],
         },
       ],
-      citationIntegrity: {
-        totalReferences: 42,
-        sampledCount: 42,
-        checkedCount: 42,
-        coverageNote: "100% offline verification via on-device Laya Retraction Shield Index.",
-        verifiedCount: 42,
-        unresolvableCount: 0,
-        uncheckedCount: 0,
-        retractedCount: 0,
-        retractionCheckAvailable: true,
-        selfCitationRatio: 0.05,
-        recencyProfile: { last5YearsPercent: 78, olderThan5YearsPercent: 22 },
-        references: [],
-      },
+      citationIntegrity: activeCitationIntegrity,
     };
-  }, [paper, result, score, isDeskReject, signals, flags, summaryText, scanResult?.reviewerPersonas]);
+  }, [paper, result, score, isDeskReject, signals, flags, summaryText, scanResult?.reviewerPersonas, activeCitationIntegrity]);
 
   // Match journals from catalog to guarantee 3 tiered cards + 10+ list matches
   const matchingJournalsData = useMemo(() => {
@@ -601,30 +684,6 @@ export function DesktopLayaDashboardView({
   const otherJournals = useMemo(() => {
     return matchingJournalsData.otherMatches || [];
   }, [matchingJournalsData]);
-
-  // Citation integrity state
-  const [activeCitationIntegrity, setActiveCitationIntegrity] = useState<CitationIntegritySummary>(() => {
-    return (
-      (scanResult as any)?.citationIntegrity || {
-        totalReferences: 42,
-        sampledCount: 42,
-        checkedCount: 42,
-        verifiedCount: 42,
-        unresolvableCount: 0,
-        uncheckedCount: 0,
-        retractedCount: 0,
-        retractionCheckAvailable: true,
-        selfCitationRatio: 0.05,
-        recencyProfile: { last5YearsPercent: 78, olderThan5YearsPercent: 22 },
-        coverageNote: "100% offline verification via on-device Laya Retraction Shield Index (61,000+ records).",
-        references: [],
-      }
-    );
-  });
-
-  const handleUpdateCitationIntegrity = (updated: CitationIntegritySummary) => {
-    setActiveCitationIntegrity(updated);
-  };
 
   const handleExport = async (format: "word" | "html" | "pdf", e?: React.MouseEvent) => {
     if (e) {
@@ -1824,9 +1883,9 @@ export function DesktopLayaDashboardView({
               totalCount: activeCitationIntegrity.totalReferences,
               verifiedCount: activeCitationIntegrity.verifiedCount,
               retractedCount: activeCitationIntegrity.retractedCount,
-              notes: "Offline Retraction Shield verified.",
+              notes: activeCitationIntegrity.coverageNote || "Offline Retraction Shield verified.",
             }}
-            authors={[]}
+            authors={fullReport?.authors || []}
             effectiveReport={effectiveReport}
             onUpdateCitationIntegrity={handleUpdateCitationIntegrity}
             onExportBibTeX={async () => {
