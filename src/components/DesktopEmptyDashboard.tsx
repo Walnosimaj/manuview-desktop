@@ -415,6 +415,29 @@ export function DesktopEmptyDashboard({
               </div>
             </div>
 
+            {/* 0b. AI Phrasing & Disclosures */}
+            <div
+              onClick={() => onOpenService("ai-detection")}
+              className="rounded-2xl liquid-glass-card liquid-glass-card-interactive card-interactive-lift p-5 transition cursor-pointer group space-y-2.5"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center border border-violet-500/20">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20">
+                  Neural · ModernBERT
+                </span>
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-[#111827] dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition">
+                  AI Phrasing &amp; Disclosures
+                </h3>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2">
+                  Identify AI filler patterns and verify mandatory disclosures (Ethics, Data, Funding, COI) on-device with INT8/FP32 models.
+                </p>
+              </div>
+            </div>
+
             {/* 1. Journal Fit Predictor */}
             <div
               onClick={() => onOpenService("journal-fit")}

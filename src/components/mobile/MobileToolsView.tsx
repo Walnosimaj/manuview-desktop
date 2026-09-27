@@ -29,6 +29,13 @@ export function MobileToolsView({ onSelectService }: MobileToolsViewProps) {
           bgColor: "bg-amber-500",
         },
         {
+          id: "ai-detection",
+          name: "AI Phrasing & Disclosures",
+          description: "On-device Laya decision engine (INT8 / FP32 ONNX)",
+          icon: Sparkles,
+          bgColor: "bg-violet-600",
+        },
+        {
           id: "ai-review",
           name: "5-Persona AI Peer Review",
           description: "Methodologist, Statistician, Domain & Editor simulation",

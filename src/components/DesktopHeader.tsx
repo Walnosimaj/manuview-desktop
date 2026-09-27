@@ -86,6 +86,13 @@ const HEADER_SERVICES = [
     squircleBg: "bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-xs",
   },
   {
+    id: "ai-detection",
+    name: "AI Phrasing & Disclosures",
+    description: "Laya System 1 neural decision scan",
+    icon: Sparkles,
+    squircleBg: "bg-violet-600 text-white shadow-xs",
+  },
+  {
     id: "journal-fit",
     name: "Target Journal Fit",
     description: "48,000+ scholarly venues scope analysis",
@@ -281,6 +288,8 @@ export function DesktopHeader({
         case "ai-review":
         case "pre-submission":
           return <Sparkles className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-blue-600" : "text-neutral-400"}`} />;
+        case "ai-detection":
+          return <Sparkles className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-violet-600" : "text-neutral-400"}`} />;
         default:
           return <FileText className={`w-3.5 h-3.5 shrink-0 ${activeClass}`} />;
       }
@@ -468,7 +477,7 @@ export function DesktopHeader({
               <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
                 <span>Manuscript Services</span>
                 <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold">
-                  7 Tools
+                  {HEADER_SERVICES.length} Tools
                 </span>
               </div>
               <div className="space-y-0.5 mt-1.5">

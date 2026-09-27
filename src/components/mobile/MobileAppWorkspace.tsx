@@ -9,6 +9,7 @@ import type { PaperItem } from "@/components/DesktopSidebar";
 import type { DesktopDashboardData } from "@/components/DesktopDashboard";
 import type { FullReviewReport } from "@/lib/types";
 import { DesktopLayaScanView } from "@/components/services/DesktopLayaScanView";
+import { DesktopAiDetectionView } from "@/components/services/DesktopAiDetectionView";
 import { DesktopPreSubmissionScanView } from "@/components/services/DesktopPreSubmissionScanView";
 import { DesktopJournalFitView } from "@/components/services/DesktopJournalFitView";
 import { DesktopReferenceView } from "@/components/services/DesktopReferenceView";
@@ -107,6 +108,8 @@ export function MobileAppWorkspace({
       switch (activeTabId) {
         case "tool-laya-scan":
           return "Laya Fast Scan";
+        case "tool-ai-detection":
+          return "AI Phrasing & Disclosures";
         case "tool-ai-review":
         case "tool-pre-submission":
           return "5-Persona AI Review";
@@ -222,6 +225,8 @@ export function MobileAppWorkspace({
         ) : /* State 3: Active Tool View */
         activeTabId === "tool-laya-scan" || activeTabId === "tool-typesafe-scan" ? (
           <DesktopLayaScanView onOpenSettings={() => setIsSettingsOpen(true)} />
+        ) : activeTabId === "tool-ai-detection" ? (
+          <DesktopAiDetectionView onOpenSettings={() => setIsSettingsOpen(true)} />
         ) : activeTabId === "tool-ai-review" || activeTabId === "tool-pre-submission" ? (
           <DesktopPreSubmissionScanView
             onComplete={onScanComplete}

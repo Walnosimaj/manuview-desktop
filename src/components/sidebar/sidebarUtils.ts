@@ -6,6 +6,7 @@ import {
   FileText,
   MessageSquare,
   Gauge,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import type { PaperItem, DesktopActiveView } from "@/components/DesktopSidebar";
@@ -142,6 +143,18 @@ export function buildSidebarServices(params: {
       squircleBg: "bg-blue-600 text-white shadow-xs",
       action: () => {
         if (onSelectService) onSelectService("laya-scan");
+        else onNewReview();
+      },
+    },
+    {
+      id: "ai-detection",
+      name: "AI Phrasing & Disclosures",
+      description: "Laya System 1 neural scan",
+      icon: Sparkles,
+      color: "text-violet-600 bg-violet-50 dark:bg-violet-950/50 dark:text-violet-400",
+      squircleBg: "bg-violet-600 text-white shadow-xs",
+      action: () => {
+        if (onSelectService) onSelectService("ai-detection");
         else onNewReview();
       },
     },
