@@ -20,10 +20,14 @@ import {
   subscribeToLayaStatus,
   getLayaStatus,
   isLayaCached,
-  initLayaModel,
-  deleteLayaCache,
   type LayaProgress,
 } from "@/lib/laya/laya-service";
+import {
+  LAYA_MODEL_VARIANTS,
+  getSelectedLayaModelVariant,
+  setSelectedLayaModelVariant,
+  type LayaModelVariant,
+} from "@/lib/laya/laya-model-registry";
 import { isDesktopApp, isMacOS } from "@/lib/desktop";
 import { Settings, ShieldCheck, X, CheckCircle2, Activity, RefreshCw, AlertCircle, Zap, Check, ChevronDown, Sparkles, Search, KeyRound, Cpu, Download, Loader2, Info } from "lucide-react";
 import { GeminiLogo, OpenAILogo, GroqLogo, AnthropicLogo, OllamaLogo, LayaLogo } from "./BrandLogos";
@@ -246,7 +250,7 @@ export function ProviderSettingsModal({ isOpen, onClose, onSave, onOpenLocalMode
         : newProvider === "groq"
         ? "llama-3.3-70b-versatile"
         : newProvider === "laya" || newProvider === "typesafe"
-        ? "convaiinnovations/laya"
+        ? "laya-system1-int8"
         : newProvider === "webllm"
         ? "Qwen2.5-0.5B-Instruct-q4f16_1-MLC"
         : "llama3.3";
@@ -659,111 +663,72 @@ export function ProviderSettingsModal({ isOpen, onClose, onSave, onOpenLocalMode
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-[#787774] dark:text-neutral-400">
-                  2. Laya Decision Model Status &amp; Cache
+                  2. Laya Decision Model (Bundled with App)
                 </label>
-                <div className="flex items-center gap-2">
-                  {layaCached ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Cached &amp; Ready (Offline)
-                    </span>
-                  ) : layaStatus.state === "downloading" ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 dark:text-blue-400">
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      Downloading ({Math.round(layaStatus.progress * 100)}%)
-                    </span>
-                  ) : (
-                    <span className="text-[11px] text-neutral-400">
-                      Not Stored Locally (~{LAYA_MODEL.sizeMB} MB)
-                    </span>
-                  )}
-                </div>
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Built-in &amp; Ready (100% Offline)
+                </span>
               </div>
 
+              {/* Model Variant Selector */}
               <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/10 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <div className="text-xs font-semibold text-neutral-900 dark:text-white flex items-center gap-1.5">
-                      <span>{LAYA_MODEL.name}</span>
-                      <span className="text-[10px] font-mono text-neutral-400">({LAYA_MODEL.parameters}, ModernBERT)</span>
-                    </div>
-                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed">
-                      {layaCached
-                        ? "Permanently cached in browser storage. Runs 100% offline via Transformers.js."
-                        : `One-time download of ~${LAYA_MODEL.sizeMB} MB. WebGPU accelerated with automatic WASM fallback.`}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {layaCached ? (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (confirm(`Remove ${LAYA_MODEL.name} weights from local cache?`)) {
-                            await deleteLayaCache();
-                            setLayaCached(false);
-                            setTestResult(null);
-                          }
-                        }}
-                        className="px-3 py-1.5 rounded-xl border border-red-500/20 text-red-600 hover:bg-red-500/10 text-xs font-medium cursor-pointer transition"
-                      >
-                        Free Disk Space
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            await initLayaModel();
-                            setLayaCached(true);
-                            setTestResult(null);
-                          } catch (e: any) {
-                            console.error("Laya initialization error:", e);
-                          }
-                        }}
-                        disabled={layaStatus.state === "downloading"}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer disabled:opacity-50"
-                      >
-                        {layaStatus.state === "downloading" ? (
-                          <>
-                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            <span>Loading Weights...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Download Laya (~{LAYA_MODEL.sizeMB} MB)</span>
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
+                <div className="space-y-1">
+                  <span className="text-xs font-semibold text-neutral-900 dark:text-white flex items-center gap-1.5">
+                    <Cpu className="w-4 h-4 text-blue-500" />
+                    <span>Active Decision Model Variant</span>
+                  </span>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                    Both trained Laya models ship directly with ManuView Desktop. No download or internet required.
+                  </p>
                 </div>
 
-                {layaStatus.state === "downloading" && (
-                  <div className="space-y-1.5 pt-1">
-                    <div className="flex items-center justify-between text-[11px] font-mono text-neutral-500">
-                      <span>{layaStatus.statusText}</span>
-                      <span>{Math.round(layaStatus.progress * 100)}%</span>
-                    </div>
-                    <div className="w-full h-1.5 rounded-full bg-black/5 dark:bg-white/10 overflow-hidden">
-                      <div
-                        className="h-full bg-blue-600 rounded-full transition-all duration-200"
-                        style={{ width: `${Math.round(layaStatus.progress * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  {LAYA_MODEL_VARIANTS.map((variant) => {
+                    const isSelected = config.model === variant.id || (!config.model && variant.id === "laya-system1-int8");
+                    return (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedLayaModelVariant(variant.id);
+                          setConfig({ ...config, model: variant.id });
+                          setTestResult(null);
+                        }}
+                        className={`p-3 rounded-xl border text-left transition cursor-pointer relative ${
+                          isSelected
+                            ? "bg-blue-500/10 border-blue-500 ring-1 ring-blue-500/50 text-neutral-900 dark:text-white shadow-2xs"
+                            : "bg-white dark:bg-[#161F30] border-black/5 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 text-neutral-700 dark:text-neutral-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                            {variant.name}
+                          </span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 text-neutral-600 dark:text-neutral-300">
+                            {variant.size}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2">
+                          {variant.description}
+                        </p>
+                        {isSelected && (
+                          <div className="mt-2 text-[10px] font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            <span>Active Variant</span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
 
-                {layaStatus.state === "error" && (
-                  <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-700 dark:text-rose-300">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600 dark:text-rose-400 mt-0.5" />
-                    <div className="space-y-0.5 min-w-0 flex-1">
-                      <div className="font-semibold">Laya Download Failed</div>
-                      <div className="opacity-90 break-words">{layaStatus.error || layaStatus.statusText}</div>
-                    </div>
-                  </div>
-                )}
+                <div className="pt-2 border-t border-black/5 dark:border-white/5 flex flex-wrap items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 gap-2">
+                  <span>Architecture: ModernBERT-large (421M params)</span>
+                  <span className="font-mono text-[10px] bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded">
+                    ONNX Runtime (WASM / WebGPU)
+                  </span>
+                </div>
               </div>
             </div>
           ) : config.provider === "webllm" ? (

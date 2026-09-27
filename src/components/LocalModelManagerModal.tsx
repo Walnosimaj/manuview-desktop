@@ -36,11 +36,14 @@ import {
   subscribeToLayaStatus,
   getLayaStatus,
   isLayaCached,
-  initLayaModel,
-  deleteLayaCache,
   runLayaClassification,
   type LayaProgress,
 } from "@/lib/laya/laya-service";
+import {
+  LAYA_MODEL_VARIANTS,
+  getSelectedLayaModelVariant,
+  setSelectedLayaModelVariant,
+} from "@/lib/laya/laya-model-registry";
 import { isDesktopApp, isMacOS } from "@/lib/desktop";
 
 interface LocalModelManagerModalProps {
@@ -58,8 +61,9 @@ export function LocalModelManagerModal({ isOpen, onClose, isScanning = false }: 
   const [status, setStatus] = useState<LocalModelProgress>(getLocalModelStatus());
 
   // Laya Decision Model state
-  const [layaCached, setLayaCached] = useState<boolean>(false);
-  const [checkingLayaCache, setCheckingLayaCache] = useState<boolean>(true);
+  const [selectedLayaVariant, setSelectedLayaVariant] = useState<string>(
+    getSelectedLayaModelVariant().id
+  );
   const [layaStatus, setLayaStatus] = useState<LayaProgress>(getLayaStatus());
   const [layaTestPrompt, setLayaTestPrompt] = useState<string>(
     "This double-blind randomized clinical trial evaluated 450 participants and reported p < 0.001 with 95% confidence intervals."
@@ -120,22 +124,10 @@ export function LocalModelManagerModal({ isOpen, onClose, isScanning = false }: 
   }, [selectedModel, isOpen, status.state]);
 
   useEffect(() => {
-    let cancelled = false;
-    async function checkLaya() {
-      setCheckingLayaCache(true);
-      const cached = await isLayaCached();
-      if (!cancelled) {
-        setLayaCached(cached);
-        setCheckingLayaCache(false);
-      }
-    }
     if (isOpen) {
-      checkLaya();
+      setSelectedLayaVariant(getSelectedLayaModelVariant().id);
     }
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, layaStatus.state]);
+  }, [isOpen]);
 
   const isMacDesktop = isDesktopApp() && isMacOS();
   const isBufferConstrained = Boolean(gpuCapability?.supported && !gpuCapability?.meetsBufferRequirement);
@@ -177,27 +169,6 @@ export function LocalModelManagerModal({ isOpen, onClose, isScanning = false }: 
     }
   };
 
-  const handleDownloadLaya = async () => {
-    try {
-      await initLayaModel();
-      setLayaCached(true);
-    } catch (err: any) {
-      console.error("Laya download failed:", err);
-    }
-  };
-
-  const handleDeleteLaya = async () => {
-    if (!confirm(`Remove ${LAYA_MODEL.name} (~${LAYA_MODEL.sizeMB} MB) from local cache?`)) {
-      return;
-    }
-    try {
-      await deleteLayaCache();
-      setLayaCached(false);
-      setLayaTestOutput("");
-    } catch (err) {
-      console.error("Laya delete failed:", err);
-    }
-  };
 
   const handleRunLayaTest = async () => {
     if (!layaTestPrompt.trim()) return;
@@ -349,7 +320,7 @@ export function LocalModelManagerModal({ isOpen, onClose, isScanning = false }: 
                       {LAYA_MODEL.name}
                     </h3>
                     <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-700 dark:text-blue-300">
-                      ModernBERT ({LAYA_MODEL.parameters})
+                      ModernBERT Multi-Head ({LAYA_MODEL.parameters})
                     </span>
                   </div>
                   <p className="text-xs text-neutral-600 dark:text-neutral-300 mt-2 leading-relaxed">
@@ -360,16 +331,18 @@ export function LocalModelManagerModal({ isOpen, onClose, isScanning = false }: 
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-blue-500/15 text-[11px] font-mono text-neutral-600 dark:text-neutral-400">
                 <div>
-                  <span className="text-neutral-400 block text-[10px]">WEIGHTS</span>
-                  <span>~{LAYA_MODEL.sizeMB} MB</span>
+                  <span className="text-neutral-400 block text-[10px]">STATUS</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 inline" /> Bundled (Offline)
+                  </span>
                 </div>
                 <div>
-                  <span className="text-neutral-400 block text-[10px]">ARCHITECTURE</span>
-                  <span>ModernBERT</span>
+                  <span className="text-neutral-400 block text-[10px]">WEIGHTS</span>
+                  <span>23 MB / 90.6 MB</span>
                 </div>
                 <div>
                   <span className="text-neutral-400 block text-[10px]">ENGINE</span>
-                  <span>Transformers.js</span>
+                  <span>ONNX Runtime</span>
                 </div>
                 <div>
                   <span className="text-neutral-400 block text-[10px]">ACCELERATION</span>
@@ -378,99 +351,79 @@ export function LocalModelManagerModal({ isOpen, onClose, isScanning = false }: 
               </div>
             </div>
 
-            {/* Cache Status & Actions */}
-            <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/10 space-y-4">
+            {/* Bundled Model Variant Selection */}
+            <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/10 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <HardDrive className="w-4 h-4 text-neutral-500" />
                   <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-                    Cache Storage Status
+                    Bundled Neural Weights
                   </span>
                 </div>
-                {checkingLayaCache ? (
-                  <span className="text-[11px] text-neutral-400">Checking...</span>
-                ) : layaCached ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                    <Check className="w-3.5 h-3.5" /> Cached &amp; Ready
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                    Not stored locally
-                  </span>
-                )}
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                  <Check className="w-3.5 h-3.5" /> Shipped with Application
+                </span>
               </div>
 
-              {/* Progress bar */}
-              {isLayaDownloading && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-neutral-600 dark:text-neutral-400">
-                    <span className="truncate pr-2">{layaStatus.statusText || "Loading weights..."}</span>
-                    <span className="font-bold shrink-0">{Math.round((layaStatus.progress || 0) * 100)}%</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
-                    <div
-                      className="h-full bg-blue-600 transition-all duration-300 rounded-full"
-                      style={{ width: `${Math.round((layaStatus.progress || 0) * 100)}%` }}
-                    />
-                  </div>
-                </div>
-              )}
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                Both trained Laya models ship directly with ManuView Desktop. No external downloading or network egress required. Select your active inference precision:
+              </p>
 
-              {layaStatus.state === "error" && (
-                <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-700 dark:text-rose-300">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600 dark:text-rose-400 mt-0.5" />
-                  <div className="space-y-0.5">
-                    <div className="font-semibold">Download Failed</div>
-                    <div className="opacity-90">{layaStatus.error || layaStatus.statusText}</div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-1">
-                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                  {layaCached
-                    ? "Permanently stored in browser cache. Runs 100% offline."
-                    : `Requires a one-time ~${LAYA_MODEL.sizeMB} MB download.`}
-                </p>
-
-                <div className="flex items-center gap-2">
-                  {layaCached ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {LAYA_MODEL_VARIANTS.map((variant) => {
+                  const isSelected = selectedLayaVariant === variant.id;
+                  return (
                     <button
+                      key={variant.id}
                       type="button"
-                      onClick={handleDeleteLaya}
-                      disabled={isLayaDownloading || isScanning}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border border-red-500/20 text-red-600 hover:text-red-700 hover:bg-red-500/10 transition cursor-pointer"
+                      onClick={() => {
+                        setSelectedLayaModelVariant(variant.id);
+                        setSelectedLayaVariant(variant.id);
+                        try {
+                          const rawConfig = localStorage.getItem("manuview_provider_config");
+                          if (rawConfig) {
+                            const parsed = JSON.parse(rawConfig);
+                            if (parsed.provider === "laya" || parsed.provider === "typesafe") {
+                              parsed.model = variant.id;
+                              localStorage.setItem("manuview_provider_config", JSON.stringify(parsed));
+                            }
+                          }
+                        } catch {}
+                      }}
+                      className={`p-3 rounded-xl border text-left transition cursor-pointer relative ${
+                        isSelected
+                          ? "bg-blue-500/10 border-blue-500 ring-1 ring-blue-500/50 text-neutral-900 dark:text-white shadow-2xs"
+                          : "bg-white dark:bg-[#161F30] border-black/5 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 text-neutral-700 dark:text-neutral-300"
+                      }`}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Free Disk Space</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                          {variant.name}
+                        </span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 text-neutral-600 dark:text-neutral-300">
+                          {variant.size}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2">
+                        {variant.description}
+                      </p>
+                      <div className="mt-2 flex items-center justify-between text-[10px]">
+                        <span className="font-mono text-neutral-400">{variant.speed}</span>
+                        {isSelected && (
+                          <div className="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            <span>Active Variant</span>
+                          </div>
+                        )}
+                      </div>
                     </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleDownloadLaya}
-                      disabled={isLayaDownloading || isScanning}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition cursor-pointer disabled:opacity-50"
-                    >
-                      {isLayaDownloading ? (
-                        <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          <span>Downloading Weights...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Download {LAYA_MODEL.name}</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
+                  );
+                })}
               </div>
             </div>
 
             {/* Live Test Benchmark for Laya */}
-            {layaCached && (
-              <div className="p-4 rounded-2xl bg-blue-500/[0.03] border border-blue-500/20 space-y-3">
+            <div className="p-4 rounded-2xl bg-blue-500/[0.03] border border-blue-500/20 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
                     <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -514,7 +467,6 @@ export function LocalModelManagerModal({ isOpen, onClose, isScanning = false }: 
                   </div>
                 )}
               </div>
-            )}
           </div>
         ) : (
           /* TAB 2: Generative SLMs (WebLLM) */

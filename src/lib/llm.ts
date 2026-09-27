@@ -199,7 +199,7 @@ export async function resolveActiveConfig(config?: ProviderConfig): Promise<Prov
       provider === "gemini" ? "gemini-2.5-flash" :
       provider === "groq" ? "llama-3.3-70b-versatile" :
       provider === "openai" ? "gpt-4o-mini" :
-      (provider === "laya" || provider === "typesafe") ? "convaiinnovations/laya" :
+      (provider === "laya" || provider === "typesafe") ? "laya-system1-int8" :
       "claude-3-5-sonnet-20241022"
     ),
     baseUrl: baseUrl || (
@@ -1192,20 +1192,38 @@ export const CURATED_MODELS: Record<LLMProvider, AvailableModel[]> = {
   ],
   laya: [
     {
-      id: "convaiinnovations/laya",
-      name: "Laya (ModernBERT-large 421M)",
-      description: "On-device non-autoregressive decision model running 100% in-browser via Transformers.js & WebGPU.",
-      tag: "✨ On-Device",
+      id: "laya-system1-int8",
+      name: "Laya System 1 v2 (INT8 Quantized, 23 MB)",
+      description: "Fast on-device decision model for structured screening & reporting. Shipped with app.",
+      tag: "⚡ Fast (Bundled)",
       recommended: true,
+      isDownloaded: true,
+    },
+    {
+      id: "laya-system1-fp32",
+      name: "Laya System 1 v2 (FP32 Full Precision, 90.6 MB)",
+      description: "Full precision on-device decision model for maximum diagnostic fidelity. Shipped with app.",
+      tag: "🎯 High Precision",
+      recommended: false,
+      isDownloaded: true,
     },
   ],
   typesafe: [
     {
-      id: "convaiinnovations/laya",
-      name: "Laya (ModernBERT-large 421M)",
-      description: "On-device non-autoregressive decision model running 100% in-browser via Transformers.js & WebGPU.",
-      tag: "✨ On-Device",
+      id: "laya-system1-int8",
+      name: "Laya System 1 v2 (INT8 Quantized, 23 MB)",
+      description: "Fast on-device decision model for structured screening & reporting. Shipped with app.",
+      tag: "⚡ Fast (Bundled)",
       recommended: true,
+      isDownloaded: true,
+    },
+    {
+      id: "laya-system1-fp32",
+      name: "Laya System 1 v2 (FP32 Full Precision, 90.6 MB)",
+      description: "Full precision on-device decision model for maximum diagnostic fidelity. Shipped with app.",
+      tag: "🎯 High Precision",
+      recommended: false,
+      isDownloaded: true,
     },
   ],
 };
@@ -1672,7 +1690,7 @@ export async function testLLMConnection(
     } else if (provider === "laya" || provider === "typesafe") {
       const { resolveTypeSafeKey } = await import("./typesafe");
       apiKey = await resolveTypeSafeKey();
-      model = model || "convaiinnovations/laya";
+      model = model || "laya-system1-int8";
     }
   }
 
@@ -1725,30 +1743,17 @@ export async function testLLMConnection(
     // 0. Laya On-Device Decision Model Probe
     // -----------------------------------------------------------
     if (provider === "laya" || provider === "typesafe") {
-      const tsModel = model || "convaiinnovations/laya";
-      const { isLayaCached, checkLayaWebGPUSupport } = await import("./laya/laya-service");
-      const cached = await isLayaCached();
+      const tsModel = model || "laya-system1-int8";
+      const { checkLayaWebGPUSupport } = await import("./laya/laya-service");
       const hasGpu = await checkLayaWebGPUSupport();
       const latencyMs = Math.max(1, Date.now() - startTime);
-
-      if (!cached) {
-        return {
-          success: false,
-          provider: provider,
-          model: tsModel,
-          latencyMs,
-          message: "Laya model weights (~450 MB) are not yet stored locally.",
-          error: "Please click \"Download Laya\" above to download the ModernBERT decision weights into your local browser cache for offline execution.",
-          availableModels,
-        };
-      }
 
       return {
         success: true,
         provider: provider,
         model: tsModel,
         latencyMs,
-        message: `Laya Decision Model is verified & ready for offline execution (${hasGpu ? "WebGPU" : "WASM"}). Zero API dependencies.`,
+        message: `Laya System 1 v2 Decision Model is built-in & ready for offline execution (${hasGpu ? "WebGPU" : "WASM"}). Zero API dependencies.`,
         availableModels,
       };
     }
