@@ -51,6 +51,11 @@ import {
   detectPublishedArticle,
 } from "./citation-audit";
 import {
+  runClaimVerification,
+  type ClaimVerificationOptions,
+  type ClaimVerificationReport,
+} from "./claim-verification";
+import {
   calculateDeterministicPersonas,
   CANONICAL_ANONYMOUS_TRACKS,
   CANONICAL_PERSONA_ROLES,
@@ -497,7 +502,8 @@ export async function runManuscriptDiagnostic(
   config?: ProviderConfig,
   targetJournalName?: string,
   onProgress?: (update: DiagnosticProgressUpdate) => void,
-  preloadedScope?: JournalScopeProfile | null
+  preloadedScope?: JournalScopeProfile | null,
+  claimVerificationOpts?: ClaimVerificationOptions | null
 ): Promise<FullReviewReport> {
   const heuristicClassification = manuscript.classification || classifyDocument(manuscript.rawText);
   manuscript.classification = heuristicClassification;
@@ -1254,6 +1260,37 @@ export async function runManuscriptDiagnostic(
 
   // Crossref integrity issues & self-citation escalation
   const additionalIssues: PriorityIssue[] = [];
+  // Conductor claim-verification sidecar (opt-in): evidence-grounded
+  // verdicts on the manuscript's atomic factual claims. Never throws:
+  // a sidecar failure is recorded on the report and the diagnostic
+  // proceeds without this stage.
+  let claimVerificationReport: ClaimVerificationReport | undefined;
+  if (claimVerificationOpts) {
+    onProgress?.({
+      stage: "classifying",
+      message: "Claim verification: checking manuscript claims against retrieved literature...",
+      percent: 62,
+    });
+    const claimResult = await runClaimVerification(manuscript.rawText, {
+      title: manuscript.title,
+      ...claimVerificationOpts,
+    });
+    additionalIssues.push(...claimResult.priorityIssues);
+    claimVerificationReport = {
+      briefAvailable: claimResult.brief !== null,
+      verdictCounts: claimResult.brief?.verdict_counts ?? {
+        confirmed: 0, corrected: 0, unverified: 0, refuted: 0,
+      },
+      killList: claimResult.brief?.kill_list ?? [],
+      issuesRaised: claimResult.priorityIssues.length,
+      verifierReprompted: claimResult.brief?.verifier_reprompted ?? false,
+      verifierDegenerate: claimResult.brief?.verifier_degenerate ?? false,
+      error: claimResult.error,
+    };
+    if (claimResult.error) {
+      console.warn("Claim verification sidecar unavailable:", claimResult.error);
+    }
+  }
   const hasRetractionIssue = finalPriorityIssues.some(
     (i) => i.id === "iss-retract" || (i.category === "Citations" && /retract/i.test(`${i.title} ${i.description}`))
   );
@@ -1563,6 +1600,7 @@ export async function runManuscriptDiagnostic(
     journalRecommendations: finalRecommendations,
     citationIntegrity,
     citationBlindspots: await blindspotsPromise,
+    claimVerification: claimVerificationReport,
     artifactAudit: await artifactAuditPromise,
     counterEvidenceRadar: domainSynthesis.counterEvidenceRadar,
     displayItemAudit: domainSynthesis.displayItemAudit,
