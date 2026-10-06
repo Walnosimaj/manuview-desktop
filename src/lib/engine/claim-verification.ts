@@ -331,6 +331,29 @@ export async function runClaimVerification(
 }
 
 /**
+ * Render the deterministic evidence-brief block shared by all grounding
+ * entry points. The block quotes verdict counts and the binding kill
+ * list verbatim from the sidecar JSON -- never paraphrased by an LLM.
+ */
+function renderBriefBlock(brief: ConductorBrief): string {
+  const killList =
+    brief.kill_list.length > 0
+      ? brief.kill_list.map((k) => `- [V${k.number}] ${k.text} (${k.detail})`).join("\n")
+      : "(none)";
+  const counts = brief.verdict_counts;
+  return (
+    `EVIDENCE BRIEF (deterministically rendered from literature verification -- ` +
+    `treat as ground truth about claim status):\n` +
+    `Verdict counts: ${counts.confirmed} CONFIRMED / ${counts.corrected} CORRECTED / ` +
+    `${counts.unverified} UNVERIFIED / ${counts.refuted} REFUTED.\n` +
+    `Binding refutations (do not present these claims as valid):\n${killList}\n\n` +
+    `CONTRACT: check every factual assertion you make about the manuscript's claims ` +
+    `against this brief. Never assume a claim's status -- if the brief does not ` +
+    `establish it, say so. Cite verdicts as [Vn].`
+  );
+}
+
+/**
  * Phase 2 hook: ground reviewer persona prompts with the evidence brief.
  *
  * Appends the deterministic brief (verdict counts + kill list) to a persona
@@ -342,20 +365,36 @@ export function groundPersonaPromptWithBrief(
   systemPrompt: string,
   brief: ConductorBrief
 ): string {
-  const killList =
-    brief.kill_list.length > 0
-      ? brief.kill_list.map((k) => `- [V${k.number}] ${k.text} (${k.detail})`).join("\n")
-      : "(none)";
-  const counts = brief.verdict_counts;
-  return (
-    `${systemPrompt}\n\n` +
-    `EVIDENCE BRIEF (deterministically rendered from literature verification -- ` +
-    `treat as ground truth about claim status):\n` +
-    `Verdict counts: ${counts.confirmed} CONFIRMED / ${counts.corrected} CORRECTED / ` +
-    `${counts.unverified} UNVERIFIED / ${counts.refuted} REFUTED.\n` +
-    `Binding refutations (do not present these claims as valid):\n${killList}\n\n` +
-    `CONTRACT: check every factual assertion you make about the manuscript's claims ` +
-    `against this brief. Never assume a claim's status -- if the brief does not ` +
-    `establish it, say so. Cite verdicts as [Vn].`
-  );
+  return `${systemPrompt}\n\n${renderBriefBlock(brief)}`;
+}
+
+/**
+ * Phase 2 panel grounding: apply the evidence brief to ManuView's unified
+ * 5-persona review prompt, targeted at the two personas whose judgments
+ * rest on factual claim status --
+ *   - Reviewer 2 "Target Domain Specialist" (persona: domain_expert)
+ *   - Reviewer 5 "Adversarial Translation Referee" (persona: devils_advocate)
+ *
+ * The other three personas keep their rubrics unchanged. Persona voices
+ * and roles are not modified; only the brief and the binding directives
+ * below are appended.
+ */
+export function groundPanelPromptWithBrief(
+  systemPrompt: string,
+  brief: ConductorBrief
+): string {
+  const directives =
+    `PERSONA-TARGETED DIRECTIVES (apply to the two personas named below; the ` +
+    `other three personas keep their rubrics unchanged):\n` +
+    `- Reviewer 2 "Target Domain Specialist" (persona: "domain_expert"): when ` +
+    `assessing domain novelty and theoretical contribution, check every factual ` +
+    `claim you endorse against the EVIDENCE BRIEF. Do NOT present a claim as ` +
+    `an established finding when the brief marks it CORRECTED, UNVERIFIED, or ` +
+    `REFUTED -- downgrade or challenge it instead, citing the verdict [Vn].\n` +
+    `- Reviewer 5 "Adversarial Translation Referee" (persona: "devils_advocate"): ` +
+    `the binding refutations are your primary ammunition. Each kill-list entry ` +
+    `MUST appear as a major critique with its [Vn] citation and the verifier's ` +
+    `reason. UNVERIFIED claims MUST appear as missing-citation / missing-evidence ` +
+    `demands. Do not soften a refutation into a minor comment.\n\n`;
+  return `${systemPrompt}\n\n${directives}${renderBriefBlock(brief)}`;
 }

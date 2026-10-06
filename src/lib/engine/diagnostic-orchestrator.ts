@@ -52,9 +52,15 @@ import {
 } from "./citation-audit";
 import {
   runClaimVerification,
+  groundPanelPromptWithBrief,
   type ClaimVerificationOptions,
   type ClaimVerificationReport,
+  type ClaimVerificationResult,
 } from "./claim-verification";
+import {
+  isProteinBiochemistryDiscipline,
+  renderProteinBiochemCalibrationBlock,
+} from "./calibration-protein-biochem";
 import {
   calculateDeterministicPersonas,
   CANONICAL_ANONYMOUS_TRACKS,
@@ -995,6 +1001,27 @@ export async function runManuscriptDiagnostic(
     };
   }
 
+  // Conductor claim-verification sidecar (opt-in, Phase 2): runs BEFORE
+  // the LLM persona synthesis so the evidence brief can ground Reviewer 2
+  // (domain expert) and Reviewer 5 (devil's advocate) prompts. Never
+  // throws: a sidecar failure is recorded on the report and the diagnostic
+  // proceeds without this stage, byte-identical to the ungrounded path.
+  let claimVerificationResult: ClaimVerificationResult | null = null;
+  if (claimVerificationOpts) {
+    onProgress?.({
+      stage: "classifying",
+      message: "Claim verification: checking manuscript claims against retrieved literature...",
+      percent: 62,
+    });
+    claimVerificationResult = await runClaimVerification(manuscript.rawText, {
+      title: manuscript.title,
+      ...claimVerificationOpts,
+    });
+    if (claimVerificationResult.error) {
+      console.warn("Claim verification sidecar unavailable:", claimVerificationResult.error);
+    }
+  }
+
   // Step 5: Multi-Stage LLM Evaluation Simulation & Micro-Repair
   const provider = activeConfig?.provider || "gemini";
   const isCompactContext = Boolean(
@@ -1009,7 +1036,18 @@ export async function runManuscriptDiagnostic(
   const boundaryNonce = generateBoundaryNonce();
 
   // One unified review prompt path for all providers (Ollama, Bundled SLM, Cloud API)
-  const systemPrompt = buildPreSubmissionSystemPrompt(boundaryNonce, isCompactContext);
+  let systemPrompt = buildPreSubmissionSystemPrompt(boundaryNonce, isCompactContext);
+  // Phase 2 grounding: the Conductor evidence brief targets Reviewer 2
+  // (domain expert) and Reviewer 5 (devil's advocate); other personas keep
+  // their rubrics unchanged. No-op when the sidecar did not run.
+  if (claimVerificationResult?.brief) {
+    systemPrompt = groundPanelPromptWithBrief(systemPrompt, claimVerificationResult.brief);
+  }
+  // Phase 2 field calibration: protein-biochemistry demands for Reviewer 2,
+  // gated on the detected discipline. Independent of the sidecar.
+  if (isProteinBiochemistryDiscipline(detectedDiscipline)) {
+    systemPrompt = `${systemPrompt}\n\n${renderProteinBiochemCalibrationBlock()}`;
+  }
   const userPrompt = buildPreSubmissionUserPrompt(
     manuscript,
     heuristicClassification,
@@ -1260,36 +1298,23 @@ export async function runManuscriptDiagnostic(
 
   // Crossref integrity issues & self-citation escalation
   const additionalIssues: PriorityIssue[] = [];
-  // Conductor claim-verification sidecar (opt-in): evidence-grounded
-  // verdicts on the manuscript's atomic factual claims. Never throws:
-  // a sidecar failure is recorded on the report and the diagnostic
-  // proceeds without this stage.
+  // Conductor claim-verification results (sidecar ran before Step 5 so the
+  // brief could ground persona prompts): map non-confirmed verdicts to
+  // PriorityIssues. No-op when the sidecar was disabled or failed.
   let claimVerificationReport: ClaimVerificationReport | undefined;
-  if (claimVerificationOpts) {
-    onProgress?.({
-      stage: "classifying",
-      message: "Claim verification: checking manuscript claims against retrieved literature...",
-      percent: 62,
-    });
-    const claimResult = await runClaimVerification(manuscript.rawText, {
-      title: manuscript.title,
-      ...claimVerificationOpts,
-    });
-    additionalIssues.push(...claimResult.priorityIssues);
+  if (claimVerificationResult) {
+    additionalIssues.push(...claimVerificationResult.priorityIssues);
     claimVerificationReport = {
-      briefAvailable: claimResult.brief !== null,
-      verdictCounts: claimResult.brief?.verdict_counts ?? {
+      briefAvailable: claimVerificationResult.brief !== null,
+      verdictCounts: claimVerificationResult.brief?.verdict_counts ?? {
         confirmed: 0, corrected: 0, unverified: 0, refuted: 0,
       },
-      killList: claimResult.brief?.kill_list ?? [],
-      issuesRaised: claimResult.priorityIssues.length,
-      verifierReprompted: claimResult.brief?.verifier_reprompted ?? false,
-      verifierDegenerate: claimResult.brief?.verifier_degenerate ?? false,
-      error: claimResult.error,
+      killList: claimVerificationResult.brief?.kill_list ?? [],
+      issuesRaised: claimVerificationResult.priorityIssues.length,
+      verifierReprompted: claimVerificationResult.brief?.verifier_reprompted ?? false,
+      verifierDegenerate: claimVerificationResult.brief?.verifier_degenerate ?? false,
+      error: claimVerificationResult.error,
     };
-    if (claimResult.error) {
-      console.warn("Claim verification sidecar unavailable:", claimResult.error);
-    }
   }
   const hasRetractionIssue = finalPriorityIssues.some(
     (i) => i.id === "iss-retract" || (i.category === "Citations" && /retract/i.test(`${i.title} ${i.description}`))
