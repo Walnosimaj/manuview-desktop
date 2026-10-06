@@ -290,9 +290,10 @@ export async function runClaimVerification(
   }
   try {
     const { join } = await import("node:path");
+    const { tmpdir } = await import("node:os");
     const stamp = Date.now().toString(36);
-    manuscriptPath = join(fsPromises.tmpdir(), `manuview-ms-${stamp}.md`);
-    briefPath = join(fsPromises.tmpdir(), `manuview-brief-${stamp}.json`);
+    manuscriptPath = join(tmpdir(), `manuview-ms-${stamp}.md`);
+    briefPath = join(tmpdir(), `manuview-brief-${stamp}.json`);
     await fsPromises.writeFile(manuscriptPath, manuscriptText, "utf-8");
 
     const command = opts.conductorCommand ?? defaultConductorCommand();
