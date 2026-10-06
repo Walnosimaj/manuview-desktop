@@ -544,6 +544,7 @@ export interface FullReviewReport {
   journalRecommendations: JournalRecommendation[];
   citationIntegrity: CitationIntegritySummary;
   citationBlindspots?: CitationBlindspotsReport;
+  claimVerification?: import('./engine/claim-verification').ClaimVerificationReport;
   artifactAudit?: ArtifactAuditReport;
   counterEvidenceRadar?: CounterEvidenceProfile[];
   displayItemAudit?: DisplayItemAuditReport;
