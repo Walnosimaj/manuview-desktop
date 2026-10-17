@@ -450,12 +450,25 @@ export function classifyDocument(rawText: string, filename?: string): DocumentCl
 
     let subType = 'Empirical / Theoretical Research Article';
     // 1. Computer Vision, Deep Learning, & Benchmark Studies (prioritized before domain keywords like e-waste)
-    const isComputerVisionOrDL = /rt-detr|yolov\d+|faster\s+r-cnn|object\s+detection|bounding\s+box|mean\s+average\s+precision|\bmap@|segmentation\s+model|vision\s+transformer|convolutional\s+neural|deep\s+learning|transformer\s+architecture|benchmark\s+dataset/i.test(clean);
+    // Guard: require a genuinely CV-specific signal, or at least two independent
+    // computational signals — a single loose term such as "deep learning" in a
+    // cited reference title must not hijack the discipline.
+    const cvSpecific = /rt-detr|yolov\d+|faster\s+r-cnn|object\s+detection|bounding\s+box|mean\s+average\s+precision|\bmap@|segmentation\s+model|vision\s+transformer|convolutional\s+neural/i.test(clean);
+    const cvSignalCount = [
+      /rt-detr|yolov\d+|faster\s+r-cnn/i,
+      /object\s+detection|bounding\s+box|mean\s+average\s+precision|\bmap@/i,
+      /segmentation\s+model|vision\s+transformer|convolutional\s+neural/i,
+      /transformer\s+architecture|representation\s+learning/i,
+      /deep\s+learning|benchmark\s+dataset/i,
+    ].filter((re) => re.test(clean)).length;
+    const isComputerVisionOrDL = cvSpecific || cvSignalCount >= 2;
     
     if (isComputerVisionOrDL) {
       subType = 'Computational & Algorithmic Research (Computer Vision & Machine Learning)';
     } else if (/systematic review|meta-analysis|prisma\b|scoping review/i.test(clean)) {
       subType = 'Review / Synthesis Article';
+    } else if (/protein\s+(purification|expression|crystallization|engineering)|affinity\s+tag|affinity\s+chromatography|mass\s+spectrometry|cryo-?em|recombinant\s+protein|site-?directed\s+mutagenesis|his6?-?(?:sumo|tag)|ulp1|\be\.?\s*coli\b|protein\s+structure/i.test(clean)) {
+      subType = 'Protein Biochemistry / Structural Biology';
     } else if (/in vivo|in vitro|clinical trial|patient|cohort|assay|crispr|tumor|pathology|oncology/i.test(clean)) {
       subType = 'Empirical Laboratory / Clinical Study';
     } else if (/nonlinear optimization|inventory model|decision variable|kkt\b|convex optimization|karush-kuhn-tucker|eoq\b/i.test(clean)) {
